@@ -1,0 +1,37 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# next
+.next
+out
+build
+dist
+
+# payload
+src/payload-types.ts.bak
+
+# env / secrets
+.env
+.env.local
+.env.*.local
+*.pem
+# service-account keys — NEVER commit
+secrets/
+*service-account*.json
+handistack-*.json
+
+# media uploads (served from a mounted Docker volume in prod)
+/public/media
+/media
+
+# misc
+.DS_Store
+*.log
+npm-debug.log*
+.vercel
+.idea
+.vscode
+
+# local agent/editor config
+.claude/

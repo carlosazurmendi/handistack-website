@@ -1,0 +1,50 @@
+{
+  "name": "handistack-site",
+  "version": "1.0.0",
+  "description": "Handistack marketing site — Next.js + Payload CMS + Supabase with n8n-gated qualification booking.",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap",
+    "payload": "payload",
+    "migrate": "payload migrate",
+    "migrate:create": "payload migrate:create",
+    "seed": "tsx src/seed/index.ts"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "3.85.0",
+    "@payloadcms/next": "3.85.0",
+    "@payloadcms/richtext-lexical": "3.85.0",
+    "@payloadcms/storage-s3": "3.85.0",
+    "@payloadcms/ui": "3.85.0",
+    "google-auth-library": "10.6.2",
+    "googleapis": "173.0.0",
+    "graphql": "16.9.0",
+    "next": "16.2.7",
+    "payload": "3.85.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "sharp": "0.34.2"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.1",
+    "dotenv": "16.4.7",
+    "tsx": "4.19.2",
+    "typescript": "5.7.3"
+  },
+  "engines": {
+    "node": ">=20.9.0",
+    "pnpm": ">=9"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["sharp", "esbuild"]
+  }
+}
