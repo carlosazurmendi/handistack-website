@@ -9,12 +9,51 @@ services:
     image: ghcr.io/carlosazurmendi/handistack-website:latest
     container_name: handistack-site
     restart: unless-stopped
-    env_file:
-      - .env
     networks:
       - proxy
     volumes:
       - media:/app/public/media
+    # Env is injected by Dockhand's stack environment variables (no .env file needed).
+    # Each value below is substituted from the stack/host environment at deploy time.
+    # For local `docker compose up`, the values come from a sibling .env automatically.
+    environment:
+      - NODE_ENV=production
+      - PAYLOAD_SECRET=${PAYLOAD_SECRET}
+      - PAYLOAD_DB_PUSH=${PAYLOAD_DB_PUSH:-true}
+      - APP_URL=${APP_URL}
+      - NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
+      - ADMIN_HOST=${ADMIN_HOST}
+      # Supabase / Postgres
+      - DATABASE_URI=${DATABASE_URI}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_PUBLISHABLE_KEY=${SUPABASE_PUBLISHABLE_KEY}
+      - SUPABASE_SECRET_KEY=${SUPABASE_SECRET_KEY}
+      # Google (service account as base64 — no key file to mount)
+      - GOOGLE_SERVICE_ACCOUNT_B64=${GOOGLE_SERVICE_ACCOUNT_B64}
+      - GOOGLE_IMPERSONATE_SUBJECT=${GOOGLE_IMPERSONATE_SUBJECT}
+      - GOOGLE_CALENDAR_ID=${GOOGLE_CALENDAR_ID}
+      - GOOGLE_TIMEZONE=${GOOGLE_TIMEZONE:-America/New_York}
+      - GOOGLE_BOOKING_URL=${GOOGLE_BOOKING_URL}
+      # Booking window
+      - BOOKING_WINDOWS=${BOOKING_WINDOWS:-09:00-11:00,13:00-15:00}
+      - BOOKING_SLOT_MINUTES=${BOOKING_SLOT_MINUTES:-30}
+      - BOOKING_LEAD_DAYS=${BOOKING_LEAD_DAYS:-0}
+      - BOOKING_HORIZON_DAYS=${BOOKING_HORIZON_DAYS:-30}
+      # Email (Gmail API via service account)
+      - EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-Handistack}
+      # Supabase Storage (optional; leave keys blank to keep media on the volume)
+      - SUPABASE_S3_ENDPOINT=${SUPABASE_S3_ENDPOINT}
+      - SUPABASE_S3_REGION=${SUPABASE_S3_REGION}
+      - SUPABASE_S3_ACCESS_KEY_ID=${SUPABASE_S3_ACCESS_KEY_ID}
+      - SUPABASE_S3_SECRET_ACCESS_KEY=${SUPABASE_S3_SECRET_ACCESS_KEY}
+      - SUPABASE_STORAGE_BUCKET=${SUPABASE_STORAGE_BUCKET:-media}
+      # n8n
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - N8N_WEBHOOK_HEADER=${N8N_WEBHOOK_HEADER:-handistack-website}
+      - N8N_WEBHOOK_TOKEN=${N8N_WEBHOOK_TOKEN}
+      - N8N_CALLBACK_HEADER=${N8N_CALLBACK_HEADER:-handistack-website-callback}
+      - N8N_CALLBACK_SECRET=${N8N_CALLBACK_SECRET}
     labels:
       - "traefik.enable=true"
       # --- public marketing site: handistack.com ---
