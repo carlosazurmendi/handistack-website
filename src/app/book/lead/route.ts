@@ -27,13 +27,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing or invalid fields' }, { status: 422 })
   }
 
-  const payload = await getPayloadClient()
-
-  const lead = await payload.create({
-    collection: 'leads',
-    overrideAccess: true,
-    data: { name, email, phone, domain, bottleneck, timeline, status: 'researching', source: 'marketing-site' },
-  })
+  let payload
+  let lead
+  try {
+    payload = await getPayloadClient()
+    lead = await payload.create({
+      collection: 'leads',
+      overrideAccess: true,
+      data: { name, email, phone, domain, bottleneck, timeline, status: 'researching', source: 'marketing-site' },
+    })
+  } catch (err) {
+    // Almost always a database connectivity problem (e.g. wrong DATABASE_URI, or the
+    // Supabase IPv6-only direct host being unreachable from the server).
+    console.error('[book/lead] DB write failed:', (err as Error).message)
+    return NextResponse.json({ error: 'Could not save your request. Please try again shortly.' }, { status: 500 })
+  }
 
   const forwarded = await forwardLeadToN8n({
     leadId: String(lead.id),
