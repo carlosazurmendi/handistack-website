@@ -30,33 +30,40 @@ const supabaseS3Enabled = Boolean(
   process.env.SUPABASE_S3_ACCESS_KEY_ID && process.env.SUPABASE_S3_SECRET_ACCESS_KEY && process.env.SUPABASE_S3_ENDPOINT,
 )
 
-const storagePlugins = supabaseS3Enabled
-  ? [
-      s3Storage({
-        collections: {
-          media: {
-            // Serve files straight from the public Supabase bucket (CDN), not via the app.
-            generateFileURL: ({ filename, prefix }) => {
-              const base = (process.env.SUPABASE_URL || '').replace(/\/$/, '')
-              const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'media'
-              const key = [prefix, filename].filter(Boolean).join('/')
-              return `${base}/storage/v1/object/public/${bucket}/${key}`
-            },
-          },
+// IMPORTANT: the plugin is ALWAYS included so its admin client component
+// (S3ClientUploadHandler) is registered in the importMap at build time. If it were
+// only added when S3 env is present, the build-time importMap (no env) would omit
+// the component, and a prod runtime with S3 env would reference a component missing
+// from the importMap — aborting the admin's RSC render and blanking the panel.
+// The `enabled` flag gates actual S3 usage; when off, media stays on local disk.
+const storagePlugins = [
+  s3Storage({
+    enabled: supabaseS3Enabled,
+    collections: {
+      media: {
+        // Serve files straight from the public Supabase bucket (CDN), not via the app.
+        generateFileURL: ({ filename, prefix }) => {
+          const base = (process.env.SUPABASE_URL || '').replace(/\/$/, '')
+          const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'media'
+          const key = [prefix, filename].filter(Boolean).join('/')
+          return `${base}/storage/v1/object/public/${bucket}/${key}`
         },
-        bucket: process.env.SUPABASE_STORAGE_BUCKET || 'media',
-        config: {
-          endpoint: process.env.SUPABASE_S3_ENDPOINT as string,
-          region: process.env.SUPABASE_S3_REGION || 'us-east-1',
-          forcePathStyle: true, // required by Supabase Storage
-          credentials: {
-            accessKeyId: process.env.SUPABASE_S3_ACCESS_KEY_ID as string,
-            secretAccessKey: process.env.SUPABASE_S3_SECRET_ACCESS_KEY as string,
-          },
-        },
-      }),
-    ]
-  : []
+      },
+    },
+    bucket: process.env.SUPABASE_STORAGE_BUCKET || 'media',
+    config: {
+      // Placeholder fallbacks keep config construction valid when S3 is disabled;
+      // no connection is made unless `enabled` is true and an upload occurs.
+      endpoint: process.env.SUPABASE_S3_ENDPOINT || 'https://placeholder.storage.supabase.co/storage/v1/s3',
+      region: process.env.SUPABASE_S3_REGION || 'us-east-1',
+      forcePathStyle: true, // required by Supabase Storage
+      credentials: {
+        accessKeyId: process.env.SUPABASE_S3_ACCESS_KEY_ID || 'placeholder',
+        secretAccessKey: process.env.SUPABASE_S3_SECRET_ACCESS_KEY || 'placeholder',
+      },
+    },
+  }),
+]
 
 export default buildConfig({
   serverURL,
