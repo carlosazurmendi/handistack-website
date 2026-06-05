@@ -19,6 +19,21 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.storage.supabase.co' },
     ],
   },
+  async headers() {
+    // The Payload admin streams React Server Component chunks. A proxy (Cloudflare)
+    // that rewrites/optimizes HTML can drop a streamed chunk and blank the admin.
+    // `no-transform` tells the proxy to pass these responses through untouched.
+    return [
+      {
+        source: '/admin/:path*',
+        headers: [{ key: 'Cache-Control', value: 'no-store, no-transform' }],
+      },
+      {
+        source: '/api/:path*',
+        headers: [{ key: 'Cache-Control', value: 'no-store, no-transform' }],
+      },
+    ]
+  },
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })
