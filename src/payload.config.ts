@@ -88,9 +88,11 @@ export default buildConfig({
       // Supabase requires TLS; the pooler cert chain isn't in the default store.
       ssl: { rejectUnauthorized: false },
     },
-    // Auto-sync schema by default (simplest first deploy). Set PAYLOAD_DB_PUSH=false
-    // and use `payload migrate` once the schema stabilizes in production.
+    // dev-push auto-syncs schema locally, but Payload SKIPS push when
+    // NODE_ENV=production — prod schema changes go through migrations
+    // (`pnpm migrate:create` to generate, `pnpm migrate` to apply). See README.
     push: process.env.PAYLOAD_DB_PUSH !== 'false',
+    migrationDir: path.resolve(dirname, 'migrations'),
   }),
   sharp,
   cors: [serverURL, `https://${process.env.ADMIN_HOST || ''}`].filter(Boolean),
