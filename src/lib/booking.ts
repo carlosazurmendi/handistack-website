@@ -82,3 +82,57 @@ export async function createBooking(input: CreateBookingInput): Promise<BookingR
     calendarId: CALENDAR_ID,
   }
 }
+
+// Cancel a previously created teardown event. `sendUpdates: 'all'` makes Google
+// email the guest the calendar cancellation too. A 404/410 (event already gone)
+// is swallowed so callers can treat it as success and stay idempotent.
+export async function cancelCalendarEvent(
+  eventId: string,
+  calendarId: string = CALENDAR_ID,
+): Promise<void> {
+  const cal = calendarClient()
+  try {
+    await cal.events.delete({ calendarId, eventId, sendUpdates: 'all' })
+  } catch (err) {
+    const code = (err as { code?: number }).code
+    if (code === 404 || code === 410) return
+    throw err
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+// Human-readable slot time in the booking's own timezone.
+export function formatBookingTime(startISO: string, timezone?: string | null): string {
+  const tz = timezone || CALENDAR_TZ
+  try {
+    const formatted = new Intl.DateTimeFormat('en-US', {
+      dateStyle: 'full',
+      timeStyle: 'short',
+      timeZone: tz,
+    }).format(new Date(startISO))
+    return `${formatted} (${tz})`
+  } catch {
+    return startISO
+  }
+}
+
+// Branded cancellation email sent when a lead (and its booking) is deleted.
+export function cancellationEmailHtml(name: string, when: string): string {
+  return [
+    '<div style="font-family: Arial, sans-serif; line-height:1.5; color:#111">',
+    `<p>Hi ${escapeHtml(name)},</p>`,
+    `<p>Your Handistack AI Teardown scheduled for <strong>${escapeHtml(when)}</strong> has been cancelled.</p>`,
+    `<p>If this was a mistake or you'd like to rebook, reply to this email or grab a new slot at `,
+    `<a href="https://handistack.com">handistack.com</a>.</p>`,
+    '<p>— Handistack</p>',
+    '</div>',
+  ].join('')
+}
