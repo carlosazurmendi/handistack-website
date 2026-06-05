@@ -37,6 +37,62 @@ export const Marketing: GlobalConfig = {
           ],
         },
         {
+          label: 'Blueprint',
+          fields: [
+            { name: 'blueprintEyebrow', type: 'text' },
+            { name: 'blueprintTitle', type: 'text', admin: { description: 'Plain part of the heading.' } },
+            { name: 'blueprintTitleAccent', type: 'text', admin: { description: 'Trailing words in the neon gradient.' } },
+            { name: 'blueprintBody', type: 'textarea' },
+            { name: 'manifestoKicker', type: 'text' },
+            { name: 'manifestoTitle', type: 'text' },
+            { name: 'manifestoLead', type: 'textarea' },
+            { name: 'manifestoBody1', type: 'textarea' },
+            { name: 'manifestoBody2', type: 'textarea', admin: { description: 'Supports inline HTML (<strong>, <span class="neon-text">).' } },
+            {
+              name: 'blueprintTabs',
+              type: 'array',
+              maxRows: 3,
+              admin: { description: 'Text for the three blueprint tabs (Application / Automation / Agentic). Diagram layout stays in code.' },
+              fields: [
+                { name: 'short', type: 'text', admin: { description: 'Tab label.' } },
+                { name: 'title', type: 'text' },
+                { name: 'desc', type: 'textarea' },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Architecture',
+          fields: [
+            { name: 'archEyebrow', type: 'text' },
+            { name: 'archTitle', type: 'text' },
+            { name: 'archBody', type: 'textarea' },
+            {
+              name: 'pillars',
+              type: 'array',
+              maxRows: 3,
+              admin: { description: 'The three architecture pillars. Icons stay in code.' },
+              fields: [
+                { name: 'h3', type: 'text', required: true },
+                { name: 'body', type: 'textarea', required: true },
+                {
+                  name: 'tags',
+                  type: 'array',
+                  fields: [{ name: 'value', type: 'text', required: true }],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Case Studies',
+          fields: [
+            { name: 'casesEyebrow', type: 'text' },
+            { name: 'casesTitle', type: 'text' },
+            { name: 'casesBody', type: 'textarea' },
+          ],
+        },
+        {
           label: 'Results',
           fields: [
             { name: 'resultsEyebrow', type: 'text' },
@@ -90,6 +146,7 @@ export const Marketing: GlobalConfig = {
           fields: [
             { name: 'footerTagline', type: 'textarea' },
             { name: 'contactEmail', type: 'email' },
+            { name: 'footerCopyright', type: 'text', admin: { description: 'Bottom-bar copyright line.' } },
           ],
         },
       ],

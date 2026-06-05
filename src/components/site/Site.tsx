@@ -314,29 +314,41 @@ function BpFlow({ tab }: { tab: typeof BP_TABS[number] }) {
   )
 }
 
-function SystemBlueprint() {
+function SystemBlueprint({ content }: { content: Content }) {
   const [active, setActive] = useState(0)
-  const tab = BP_TABS[active]
+  // Diagram geometry/icons stay in code; editable prose overlays it by index.
+  const tabs = BP_TABS.map((t, i) => ({
+    ...t,
+    short: content?.blueprintTabs?.[i]?.short || t.short,
+    title: content?.blueprintTabs?.[i]?.title || t.title,
+    desc: content?.blueprintTabs?.[i]?.desc || t.desc,
+  }))
+  const tab = tabs[active]
+  const manifestoBody2 = content?.manifestoBody2
   return (
     <section className="section" id="blueprint">
       <div className="wrap">
         <div className="section-head reveal" style={{ maxWidth: 760 }}>
-          <div className="eyebrow">The system blueprint</div>
-          <h2>Every layer, engineered to <span className="neon-text neon-animated">hand off.</span></h2>
-          <p>An interactive look at the architecture we ship by default — the application you see, the automation underneath it, and the agentic layer waiting for the day you scale.</p>
+          <div className="eyebrow">{content?.blueprintEyebrow || 'The system blueprint'}</div>
+          <h2>{content?.blueprintTitle || 'Every layer, engineered to'} <span className="neon-text neon-animated">{content?.blueprintTitleAccent || 'hand off.'}</span></h2>
+          <p>{content?.blueprintBody || 'An interactive look at the architecture we ship by default — the application you see, the automation underneath it, and the agentic layer waiting for the day you scale.'}</p>
         </div>
         <div className="bp-grid reveal">
           <div className="bp-manifesto">
-            <div className="bp-kicker">The Handistack Delivery Manifesto</div>
-            <h3>We build software with the end in mind.</h3>
-            <p className="bp-lead">We do not sell abstract AI concepts, generic consulting hours, or bloated enterprise software stacks.</p>
-            <p className="bp-body">Most software built today is saddled with immediate technical debt — locked behind expensive, fragile cloud subscriptions and rigid code structures that make automation impossible without a total rewrite.</p>
-            <p className="bp-body">Every application we deploy uses <strong>modular APIs, local-first data layers, and clean documentation by default</strong>. Whether we are launching an e-commerce platform or a custom internal tool, your infrastructure is delivered <span className="neon-text">natively ready to hand off</span> to autonomous AI workflows the moment you are ready to scale.</p>
+            <div className="bp-kicker">{content?.manifestoKicker || 'The Handistack Delivery Manifesto'}</div>
+            <h3>{content?.manifestoTitle || 'We build software with the end in mind.'}</h3>
+            <p className="bp-lead">{content?.manifestoLead || 'We do not sell abstract AI concepts, generic consulting hours, or bloated enterprise software stacks.'}</p>
+            <p className="bp-body">{content?.manifestoBody1 || 'Most software built today is saddled with immediate technical debt — locked behind expensive, fragile cloud subscriptions and rigid code structures that make automation impossible without a total rewrite.'}</p>
+            {manifestoBody2 ? (
+              <p className="bp-body" dangerouslySetInnerHTML={{ __html: manifestoBody2 }} />
+            ) : (
+              <p className="bp-body">Every application we deploy uses <strong>modular APIs, local-first data layers, and clean documentation by default</strong>. Whether we are launching an e-commerce platform or a custom internal tool, your infrastructure is delivered <span className="neon-text">natively ready to hand off</span> to autonomous AI workflows the moment you are ready to scale.</p>
+            )}
           </div>
           <div className="bp-panel">
             <div className="bp-panel-head">
               <div className="bp-tabs" role="tablist">
-                {BP_TABS.map((t, i) => (
+                {tabs.map((t, i) => (
                   <button key={t.key} role="tab" aria-selected={active === i} className={'bp-tab' + (active === i ? ' on' : '')} onClick={() => setActive(i)}>
                     <span className="tn">{t.n}</span>{t.short}
                   </button>
@@ -369,17 +381,27 @@ const PILLARS = [
   { n: '03', icon: 'infinity', h3: 'High-ticket custom build to reusable asset', body: 'We engineer custom software today on highly standardized frameworks, so the work compounds. You scale up features later without paying for ground-up development twice — your high-ticket build becomes a durable, reusable asset.', tags: ['Standardized frameworks', 'Compounding value', 'Scale without rewrites'] },
 ]
 
-function Pillars() {
+function Pillars({ content }: { content: Content }) {
+  // Icons/numbers stay in code; editable copy overlays each pillar by index.
+  const pillars = PILLARS.map((p, i) => {
+    const c = content?.pillars?.[i]
+    return {
+      ...p,
+      h3: c?.h3 || p.h3,
+      body: c?.body || p.body,
+      tags: c?.tags?.length ? c.tags.map((t: any) => t.value) : p.tags,
+    }
+  })
   return (
     <section className="section alt" id="architecture">
       <div className="wrap">
         <div className="section-head reveal" style={{ maxWidth: 720 }}>
-          <div className="eyebrow">The architecture</div>
-          <h2>Three pillars behind every build.</h2>
-          <p>The engineering principles we apply by default — so the software we ship stays fast, private, and ready to grow with you.</p>
+          <div className="eyebrow">{content?.archEyebrow || 'The architecture'}</div>
+          <h2>{content?.archTitle || 'Three pillars behind every build.'}</h2>
+          <p>{content?.archBody || 'The engineering principles we apply by default — so the software we ship stays fast, private, and ready to grow with you.'}</p>
         </div>
         <div className="pil-grid">
-          {PILLARS.map((p, i) => (
+          {pillars.map((p, i) => (
             <article className="pil-card reveal" key={p.n} style={{ transitionDelay: i * 90 + 'ms' }}>
               <div className="pil-top">
                 <span className="pil-num">{p.n}</span>
@@ -388,7 +410,7 @@ function Pillars() {
               <h3>{p.h3}</h3>
               <p>{p.body}</p>
               <div className="pil-tags">
-                {p.tags.map((t) => <span className="pil-tag" key={t}>{t}</span>)}
+                {p.tags.map((t: string) => <span className="pil-tag" key={t}>{t}</span>)}
               </div>
             </article>
           ))}
@@ -405,15 +427,15 @@ const CASES: CaseStudy[] = [
   { number: '03', tag: 'Field service · Orchestration', title: 'Orchestrating quote-to-dispatch for a field service company', problem: 'CRM, scheduling, and invoicing were three disconnected tools. Every job was entered three times, dispatch waited on manual handoffs, and adding any new tool meant another island of double entry.', architecture: 'A modular, API-first backend sits between the existing tools and orchestrates the flow asynchronously: a quote approval fires scheduling, which fires dispatch and invoicing. Endpoints are agent-addressable, so future automation plugs in without a rewrite.', outcome: 'Quote-to-dispatch collapsed to a single triggered flow with no double entry. The company added two new tools later by wiring endpoints — not rebuilding — turning a custom build into a reusable, scalable asset.', stack: [{ value: 'Decoupled services' }, { value: 'Async orchestration' }, { value: 'Agent-addressable' }], metricBig: '3 entries → 1', metricSub: 'quote-to-dispatch' },
 ]
 
-function CaseStudies({ cases }: { cases: CaseStudy[] }) {
+function CaseStudies({ cases, content }: { cases: CaseStudy[]; content: Content }) {
   const list = cases && cases.length ? cases : CASES
   return (
     <section className="section" id="cases">
       <div className="wrap">
         <div className="section-head reveal" style={{ maxWidth: 720 }}>
-          <div className="eyebrow">Proof of concept</div>
-          <h2>How the architecture holds up in production.</h2>
-          <p>Representative builds, told through their technical mechanics — the exact problems we solve and the systems we ship to solve them.</p>
+          <div className="eyebrow">{content?.casesEyebrow || 'Proof of concept'}</div>
+          <h2>{content?.casesTitle || 'How the architecture holds up in production.'}</h2>
+          <p>{content?.casesBody || 'Representative builds, told through their technical mechanics — the exact problems we solve and the systems we ship to solve them.'}</p>
         </div>
         <div className="cs-list">
           {list.map((c, idx) => (
@@ -525,6 +547,27 @@ const FAQS_DEFAULT = [
 function FAQ({ content }: { content: Content }) {
   const faqs = content?.faqs?.length ? content.faqs : FAQS_DEFAULT
   const [open, setOpen] = useState<number | null>(0)
+  // FAQ items toggle their own className on click, which makes React rewrite the
+  // attribute and strip the `.in` class the global scroll-observer added
+  // imperatively — the item would fade back out. Own the reveal in React state so
+  // `in` is part of the className React controls and survives every re-render.
+  const [revealed, setRevealed] = useState(false)
+  const listRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = listRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setRevealed(true)
+          io.disconnect()
+        }
+      },
+      { threshold: 0.12 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
   useEffect(() => {
     const id = 'handistack-faq-jsonld'
     if (document.getElementById(id)) return
@@ -547,11 +590,11 @@ function FAQ({ content }: { content: Content }) {
           <h2>{content?.faqTitle || 'Straight answers, for humans and machines.'}</h2>
           <p>{content?.faqBody || 'The questions we hear most, answered directly — and structured so search and answer engines can read them too.'}</p>
         </div>
-        <div className="faq-list" itemScope itemType="https://schema.org/FAQPage">
+        <div className="faq-list" ref={listRef} itemScope itemType="https://schema.org/FAQPage">
           {faqs.map((f: any, i: number) => {
             const isOpen = open === i
             return (
-              <article className={'faq-item reveal' + (isOpen ? ' open' : '')} key={i} style={{ transitionDelay: i * 80 + 'ms' }} itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+              <article className={'faq-item reveal' + (revealed ? ' in' : '') + (isOpen ? ' open' : '')} key={i} style={{ transitionDelay: i * 80 + 'ms' }} itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
                 <button type="button" className="faq-q" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : i)}>
                   <span className="faq-mark faq-mark-q">Q</span>
                   <h3 itemProp="name">{f.q}</h3>
@@ -627,7 +670,7 @@ function Footer({ content }: { content: Content }) {
           ))}
         </div>
         <div className="footer-bot">
-          <span>© 2026 Handistack — AI Consulting. All rights reserved.</span>
+          <span>{content?.footerCopyright || '© 2026 Handistack — AI Consulting. All rights reserved.'}</span>
           <span style={{ display: 'flex', gap: 20 }}>
             <a href="#" style={{ display: 'inline' }}>Privacy</a>
             <a href="#" style={{ display: 'inline' }}>Terms</a>
@@ -649,9 +692,9 @@ export default function Site({ content, caseStudies }: { content: Content; caseS
     <>
       <Nav onBook={open} content={content} />
       <Hero onBook={open} content={content} />
-      <SystemBlueprint />
-      <Pillars />
-      <CaseStudies cases={caseStudies} />
+      <SystemBlueprint content={content} />
+      <Pillars content={content} />
+      <CaseStudies cases={caseStudies} content={content} />
       <Metrics content={content} />
       <Booking content={content} />
       <FAQ content={content} />
