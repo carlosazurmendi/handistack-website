@@ -54,10 +54,10 @@ services:
       - N8N_CALLBACK_SECRET=${N8N_CALLBACK_SECRET}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.rule=Host(`handistack.com`)
-      - traefik.http.routers.entrypoints=websecure
-      - traefik.http.routers.tls.certresolver=letsencrypt
-      - traefik.http.services.loadbalancer.server.port=80
+      - traefik.http.routers.handistack.rule=Host(`handistack.com`)
+      - traefik.http.routers.handistack.entrypoints=websecure
+      - traefik.http.routers.handistack.tls.certresolver=letsencrypt
+      - traefik.http.services.handistack.loadbalancer.server.port=80
       
 volumes:
   media:
