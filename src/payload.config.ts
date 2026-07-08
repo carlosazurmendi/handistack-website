@@ -71,8 +71,25 @@ export default buildConfig({
   plugins: storagePlugins,
   admin: {
     user: Users.slug,
+    // Config lives in src/, so `dirname` is .../src. The leading-slash component
+    // paths below resolve relative to this baseDir; the default (process.cwd() =
+    // repo root) would NOT contain /components/admin/* and would blank the admin.
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
     meta: {
-      titleSuffix: '— Handistack Admin',
+      titleSuffix: ' — Handistack Admin',
+      icons: [{ rel: 'icon', type: 'image/png', url: '/handistack-mark.png' }],
+      openGraph: {
+        images: [{ url: '/handistack-logo-full.png' }],
+      },
+      defaultOGImageType: 'off',
+    },
+    components: {
+      graphics: {
+        Logo: '/components/admin/Logo#Logo',
+        Icon: '/components/admin/Icon#Icon',
+      },
     },
   },
   editor: lexicalEditor(),

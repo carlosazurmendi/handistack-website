@@ -1,6 +1,7 @@
 import type { ServerFunctionClient } from 'payload'
 import config from '@payload-config'
 import '@payloadcms/next/css'
+import './custom-admin.css' // Handistack admin reskin — MUST load after Payload's CSS
 import { RootLayout, handleServerFunctions } from '@payloadcms/next/layouts'
 import React from 'react'
 

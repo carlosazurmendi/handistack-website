@@ -1,0 +1,260 @@
+/* ============================================================================
+   Handistack — Payload 3.85 admin reskin
+   Loaded after '@payloadcms/next/css' in (payload)/layout.tsx. All rules are
+   UNLAYERED so they beat Payload's @layer payload-default defaults regardless
+   of specificity. Dark mode uses the verbatim html[data-theme='dark'] selector.
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ---- Handistack brand tokens (prefixed to avoid clashing) ------------------ */
+:root {
+  --hs-neon-blue:    #0066FF;
+  --hs-neon-violet:  #7B3FF2;
+  --hs-neon-magenta: #E03AF0;
+  --hs-neon-pink:    #FF4D9D;
+  --hs-neon-orange:  #FF8A1E;
+  --hs-neon-gold:    #FFC400;
+  --hs-gradient-neon: linear-gradient(100deg,#0066FF 0%,#7B3FF2 24%,#E03AF0 46%,#FF4D9D 60%,#FF8A1E 82%,#FFC400 100%);
+
+  --hs-ink:   #0A0A0B;
+  --hs-fg-2:  #52525B;
+  --hs-fg-3:  #8A8A94;
+
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Typography */
+  --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, Monaco, monospace;
+
+  /* Radii — Handistack is a touch rounder than stock 3/4/8 */
+  --style-radius-s: 6px;
+  --style-radius-m: 10px;
+  --style-radius-l: 16px;
+
+  /* Focus outline accent */
+  --accessibility-outline: 2px solid var(--hs-neon-blue);
+  --accessibility-outline-offset: 2px;
+}
+
+/* ============================================================================
+   LIGHT MODE — elevation ramp (0 = lightest surface … 1000 = ink)
+   Semantic tokens (--theme-bg/text/border-color/input-bg) resolve from these.
+   ============================================================================ */
+:root {
+  --theme-elevation-0:    #FFFFFF;
+  --theme-elevation-50:   #F7F8FA;
+  --theme-elevation-100:  #F0F1F4;
+  --theme-elevation-150:  #E6E7EB;
+  --theme-elevation-200:  #DDDEE4;
+  --theme-elevation-250:  #D4D5DB;
+  --theme-elevation-300:  #C4C5CD;
+  --theme-elevation-350:  #B4B5BE;
+  --theme-elevation-400:  #8A8A94;
+  --theme-elevation-450:  #7C7C86;
+  --theme-elevation-500:  #6E6E78;
+  --theme-elevation-550:  #626269;
+  --theme-elevation-600:  #52525B;
+  --theme-elevation-650:  #444448;
+  --theme-elevation-700:  #35353A;
+  --theme-elevation-750:  #26262B;
+  --theme-elevation-800:  #0A0A0B;
+  --theme-elevation-850:  #08080A;
+  --theme-elevation-900:  #060608;
+  --theme-elevation-950:  #030304;
+  --theme-elevation-1000: #000000;
+
+  --theme-overlay: rgba(10, 10, 11, 0.5);
+
+  /* Accent ramp — Payload's "success" is its UI-blue; remap to Handistack neon-blue.
+     Drives focus rings, checkbox glow, success pills. */
+  --theme-success-50:  #E6F0FF;
+  --theme-success-150: #CCE0FF;
+  --theme-success-400: #3385FF;
+  --theme-success-500: #0066FF;
+  --theme-success-800: #0047B3;
+  --color-success-400: #3385FF;
+  --color-success-500: #0066FF;
+
+  /* Status */
+  --theme-error-50:  #FDEAE8;
+  --theme-error-500: #F0392B;
+  --theme-error-800: #B31E12;
+  --theme-warning-50:  #FFF3E6;
+  --theme-warning-500: #FF8A1E;
+  --theme-warning-800: #B35F0F;
+}
+
+/* ============================================================================
+   DARK MODE — inverted ramp (0 = darkest surface … 1000 = white text)
+   ============================================================================ */
+html[data-theme='dark'] {
+  --theme-elevation-0:    #0A0A0B;
+  --theme-elevation-50:   #161618;
+  --theme-elevation-100:  #1E1E21;
+  --theme-elevation-150:  #27272B;
+  --theme-elevation-200:  #303035;
+  --theme-elevation-250:  #3A3A40;
+  --theme-elevation-300:  #45454C;
+  --theme-elevation-350:  #515159;
+  --theme-elevation-400:  #8A8A94;
+  --theme-elevation-450:  #9A9AA3;
+  --theme-elevation-500:  #A8A8B0;
+  --theme-elevation-550:  #B6B6BD;
+  --theme-elevation-600:  #C4C5CD;
+  --theme-elevation-650:  #D0D1D8;
+  --theme-elevation-700:  #DCDDE2;
+  --theme-elevation-750:  #E6E7EB;
+  --theme-elevation-800:  #F0F1F4;
+  --theme-elevation-850:  #F5F6F8;
+  --theme-elevation-900:  #FAFAFB;
+  --theme-elevation-950:  #FDFDFE;
+  --theme-elevation-1000: #FFFFFF;
+
+  --theme-overlay: rgba(0, 0, 0, 0.7);
+
+  --theme-success-50:  #0A1F3D;
+  --theme-success-150: #0D2A52;
+  --theme-success-400: #3385FF;
+  --theme-success-500: #0066FF;
+  --theme-success-800: #99C2FF;
+  --color-success-400: #3385FF;
+  --color-success-500: #0066FF;
+
+  --theme-error-50:  #3D1210;
+  --theme-error-500: #F0392B;
+  --theme-error-800: #F8A9A2;
+  --theme-warning-50:  #3D2606;
+  --theme-warning-500: #FF8A1E;
+  --theme-warning-800: #FFC98A;
+}
+
+/* ============================================================================
+   Display font on headings + breadcrumb (Space Grotesk)
+   ============================================================================ */
+h1, h2, h3, h4, h5, h6,
+.step-nav,
+.nav-group__label,
+.login__brand {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================================
+   (a) Primary button = neon gradient. Base .btn uses background-color(var --bg-color),
+   which can't hold a gradient, so set `background` directly + kill the border.
+   The login CTA is a .btn--style-primary, so it inherits this automatically.
+   ============================================================================ */
+.btn.btn--style-primary {
+  --color: #FFFFFF;
+  background: var(--hs-gradient-neon);
+  background-size: 160% 100%;
+  background-position: 0% 50%;
+  color: #FFFFFF;
+  border: 0;
+  transition: background-position 240ms var(--hs-ease, ease), box-shadow 240ms ease;
+}
+.btn.btn--style-primary:hover,
+.btn.btn--style-primary:focus-visible,
+.btn.btn--style-primary:focus,
+.btn.btn--style-primary:active {
+  background: var(--hs-gradient-neon);
+  background-size: 160% 100%;
+  background-position: 100% 50%;
+  color: #FFFFFF;
+  border: 0;
+  box-shadow: 0 4px 16px -4px rgba(0, 102, 255, 0.5);
+}
+.btn.btn--style-primary .btn__content,
+.btn.btn--style-primary svg .stroke { color: #FFFFFF; stroke: #FFFFFF; }
+
+/* Secondary button: neon-blue outline on hover instead of grey */
+.btn.btn--style-secondary:hover,
+.btn.btn--style-secondary:focus-visible {
+  --hover-color: var(--hs-neon-blue);
+  color: var(--hs-neon-blue);
+  border-color: var(--hs-neon-blue);
+}
+
+/* ============================================================================
+   (b) Sidebar / nav — active item + indicator go neon-blue
+   ============================================================================ */
+.nav__link.active {
+  color: var(--hs-neon-blue);
+  font-weight: 600;
+}
+.nav__link-indicator {
+  background: var(--hs-neon-blue) !important;
+}
+.nav a.nav__link:hover,
+.nav a.nav__link:focus-visible {
+  color: var(--hs-neon-blue);
+  text-decoration: none;
+}
+
+/* ============================================================================
+   (c) App header / step-nav breadcrumb links → neon-blue on hover
+   ============================================================================ */
+.step-nav a:hover,
+.step-nav a:focus-visible {
+  color: var(--hs-neon-blue);
+  text-decoration: none;
+}
+
+/* ============================================================================
+   (d) Form fields — neon focus ring (border swap + soft glow) for every field type
+   ============================================================================ */
+.field-type input:focus,
+.field-type input:focus-within,
+.field-type textarea:focus,
+.field-type select:focus,
+.field-type .rs__control--is-focused {
+  border-color: var(--hs-neon-blue) !important;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.18) !important;
+  outline: 0;
+}
+.field-type input:hover,
+.field-type textarea:hover {
+  border-color: var(--theme-elevation-250);
+}
+
+/* ============================================================================
+   (e) Checked checkbox fills neon-blue (glow already recolored via --theme-success-400)
+   ============================================================================ */
+.checkbox-input--checked .checkbox-input__input {
+  background: var(--hs-neon-blue);
+  border-color: var(--hs-neon-blue);
+}
+.checkbox-input--checked .checkbox-input__icon .stroke {
+  stroke: #FFFFFF;
+}
+
+/* ============================================================================
+   (f) Tables — add a real hover tint (stock theme only zebra-stripes)
+   ============================================================================ */
+.table tbody tr:hover {
+  background: rgba(0, 102, 255, 0.06);
+}
+
+/* ============================================================================
+   (g) Login / create-first-user — card backdrop + neon accent bar + brand lockup
+   ============================================================================ */
+.template-minimal__wrap {
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-l);
+  padding: 2.5rem;
+  box-shadow: 0 24px 60px -24px rgba(10, 10, 11, 0.18);
+  position: relative;
+}
+.template-minimal__wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  border-radius: var(--style-radius-l) var(--style-radius-l) 0 0;
+  background: var(--hs-gradient-neon);
+}
+html[data-theme='dark'] .template-minimal__wrap {
+  box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.6);
+}
+.login__brand { margin-bottom: 1.5rem; }
