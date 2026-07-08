@@ -87,6 +87,9 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
       // Supabase requires TLS; the pooler cert chain isn't in the default store.
       ssl: { rejectUnauthorized: false },
+      // Fail fast on an unreachable host instead of hanging forever (pg has no
+      // default connect timeout) — e.g. the IPv6-only direct host from a v4 network.
+      connectionTimeoutMillis: 15000,
     },
     // dev-push auto-syncs schema locally, but Payload SKIPS push when
     // NODE_ENV=production — prod schema changes go through migrations

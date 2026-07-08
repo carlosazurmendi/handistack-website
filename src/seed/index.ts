@@ -1,15 +1,29 @@
 import 'dotenv/config'
 import { getPayload } from 'payload'
 import config from '../payload.config'
+import { marketingContent, caseStudiesContent } from './content'
 
-// Idempotent seed: first admin user + marketing copy defaults + sample case studies.
-// Run with: pnpm seed   (set SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD to override)
+// Idempotent seed: first admin user + full marketing copy + sample case studies.
+// Run with: pnpm seed
+//   SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD  — override the seeded admin
+//   SEED_OVERWRITE=true                      — overwrite existing global fields
+//                                              (default: only fill empty fields,
+//                                               so manual admin edits are kept)
+function isEmpty(v: unknown): boolean {
+  if (v === undefined || v === null) return true
+  if (typeof v === 'string') return v.trim() === ''
+  if (Array.isArray(v)) return v.length === 0
+  return false
+}
+
 async function run() {
   const payload = await getPayload({ config })
 
   const email = process.env.SEED_ADMIN_EMAIL || 'cazurmendi@handistack.com'
   const password = process.env.SEED_ADMIN_PASSWORD || 'ChangeMe!Handistack1'
+  const overwrite = process.env.SEED_OVERWRITE === 'true'
 
+  // ---- Admin user ----
   const existing = await payload.find({ collection: 'users', limit: 1, overrideAccess: true })
   if (existing.totalDocs === 0) {
     await payload.create({
@@ -22,43 +36,47 @@ async function run() {
     console.log('• Users already exist, skipping admin creation')
   }
 
-  await payload.updateGlobal({
-    slug: 'marketing',
-    overrideAccess: true,
-    data: {
-      heroEyebrow: 'Specialized Software Infrastructure & AI Engineering',
-      heroHeadline: 'Stop Babysitting Your Business.',
-      heroHeadlineAccent: 'Automate Your Workflows.',
-      heroSub:
-        'Stop legacy technical debt before it starts. Handistack designs local-first, high-performance software frameworks that let your operations easily transition into automated, agentic systems down the road.',
-      heroCtaLabel: 'Schedule System Audit',
-      heroTrust: 'Built for operators ready to scale without the rebuild',
-      navCtaLabel: 'Schedule System Audit',
-      ctaTitle: 'Find your biggest bottleneck in 30 minutes.',
-      ctaBody: "Free teardown call. We'll show you exactly where AI pays for itself in your shop — no pitch deck.",
-      ctaButton: 'Book a teardown',
-      unqualifiedMessage: "Thanks for reaching out! We'll contact you regarding your request soon.",
-    },
-  })
-  console.log('✓ Seeded marketing copy global')
+  // ---- Marketing global ----
+  const current = (await payload.findGlobal({ slug: 'marketing', overrideAccess: true })) as unknown as Record<string, unknown>
+  const patch: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(marketingContent)) {
+    if (overwrite || isEmpty(current?.[key])) patch[key] = value
+  }
+  if (Object.keys(patch).length) {
+    await payload.updateGlobal({ slug: 'marketing', overrideAccess: true, data: patch })
+    console.log(`✓ Seeded marketing copy — ${Object.keys(patch).length} field(s): ${Object.keys(patch).join(', ')}`)
+  } else {
+    console.log('• Marketing copy already fully populated, nothing to fill')
+  }
 
-  const cs = await payload.find({ collection: 'case-studies', limit: 1, overrideAccess: true })
-  if (cs.totalDocs === 0) {
-    const samples = [
-      {
-        number: '01', order: 1, tag: 'Retail · Inventory ops', slug: 'retail-inventory-pipeline',
-        title: 'Automating custom data pipelines for a retail inventory operation',
-        problem: 'Stock levels were reconciled by hand across a POS system and three supplier feeds.',
-        architecture: 'A local-first SQLite ingestion layer polls each supplier API; n8n workflows normalize feeds asynchronously.',
-        outcome: 'Reconciliation dropped from a multi-hour ritual to a continuous background process.',
-        stack: [{ value: 'SQLite' }, { value: 'n8n' }, { value: 'REST endpoints' }],
-        metricBig: 'Hours → minutes', metricSub: 'reconciliation cycle',
-      },
-    ]
-    for (const s of samples) {
+  // ---- Case studies ----
+  // Default: only seed when the collection is empty (never clobber curated docs).
+  // SEED_CASES_UPSERT=true (or SEED_OVERWRITE): upsert the canonical 3 by slug —
+  // updates the old stub / creates any missing, leaves other docs untouched.
+  const upsertCases = overwrite || process.env.SEED_CASES_UPSERT === 'true'
+  const cs = await payload.find({ collection: 'case-studies', limit: 0, overrideAccess: true })
+  if (upsertCases) {
+    for (const s of caseStudiesContent) {
+      const found = await payload.find({
+        collection: 'case-studies',
+        where: { slug: { equals: s.slug } },
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (found.docs[0]) {
+        await payload.update({ collection: 'case-studies', id: found.docs[0].id, overrideAccess: true, data: s })
+      } else {
+        await payload.create({ collection: 'case-studies', overrideAccess: true, data: s })
+      }
+    }
+    console.log(`✓ Upserted ${caseStudiesContent.length} case studies by slug`)
+  } else if (cs.totalDocs === 0) {
+    for (const s of caseStudiesContent) {
       await payload.create({ collection: 'case-studies', overrideAccess: true, data: s })
     }
-    console.log('✓ Seeded sample case study')
+    console.log(`✓ Seeded ${caseStudiesContent.length} case studies`)
+  } else {
+    console.log('• Case studies already exist, skipping (SEED_CASES_UPSERT=true to refresh)')
   }
 
   console.log('Seed complete.')
