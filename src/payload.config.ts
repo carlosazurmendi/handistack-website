@@ -90,6 +90,8 @@ export default buildConfig({
         Logo: '/components/admin/Logo#Logo',
         Icon: '/components/admin/Icon#Icon',
       },
+      // Light/dark switch in the header's top-right actions slot, by the account menu.
+      actions: ['/components/admin/ThemeToggle#ThemeToggle'],
     },
     // Live Preview: edit the Marketing global with the real homepage in a split
     // pane, updating per-keystroke. The `?preview=true` flag tells the homepage
