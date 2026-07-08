@@ -91,6 +91,18 @@ export default buildConfig({
         Icon: '/components/admin/Icon#Icon',
       },
     },
+    // Live Preview: edit the Marketing global with the real homepage in a split
+    // pane, updating per-keystroke. The `?preview=true` flag tells the homepage
+    // to mount the live-preview client wrapper (public visitors never load it).
+    livePreview: {
+      url: `${serverURL}?preview=true`,
+      globals: ['marketing'],
+      breakpoints: [
+        { name: 'mobile', label: 'Mobile', width: 390, height: 844 },
+        { name: 'tablet', label: 'Tablet', width: 768, height: 1024 },
+        { name: 'desktop', label: 'Desktop', width: 1440, height: 900 },
+      ],
+    },
   },
   editor: lexicalEditor(),
   collections: [Users, Media, Leads, Bookings, Categories, Posts, CaseStudies, Testimonials],
