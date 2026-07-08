@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { getPayload } from 'payload'
 import config from '../payload.config'
-import { marketingContent, caseStudiesContent } from './content'
+import { marketingContent } from './content'
 
 // Idempotent seed: first admin user + full marketing copy + sample case studies.
 // Run with: pnpm seed
@@ -49,35 +49,8 @@ async function run() {
     console.log('• Marketing copy already fully populated, nothing to fill')
   }
 
-  // ---- Case studies ----
-  // Default: only seed when the collection is empty (never clobber curated docs).
-  // SEED_CASES_UPSERT=true (or SEED_OVERWRITE): upsert the canonical 3 by slug —
-  // updates the old stub / creates any missing, leaves other docs untouched.
-  const upsertCases = overwrite || process.env.SEED_CASES_UPSERT === 'true'
-  const cs = await payload.find({ collection: 'case-studies', limit: 0, overrideAccess: true })
-  if (upsertCases) {
-    for (const s of caseStudiesContent) {
-      const found = await payload.find({
-        collection: 'case-studies',
-        where: { slug: { equals: s.slug } },
-        limit: 1,
-        overrideAccess: true,
-      })
-      if (found.docs[0]) {
-        await payload.update({ collection: 'case-studies', id: found.docs[0].id, overrideAccess: true, data: s })
-      } else {
-        await payload.create({ collection: 'case-studies', overrideAccess: true, data: s })
-      }
-    }
-    console.log(`✓ Upserted ${caseStudiesContent.length} case studies by slug`)
-  } else if (cs.totalDocs === 0) {
-    for (const s of caseStudiesContent) {
-      await payload.create({ collection: 'case-studies', overrideAccess: true, data: s })
-    }
-    console.log(`✓ Seeded ${caseStudiesContent.length} case studies`)
-  } else {
-    console.log('• Case studies already exist, skipping (SEED_CASES_UPSERT=true to refresh)')
-  }
+  // Case studies are real, curated business content — managed in the admin, not
+  // seeded. (Intentionally left out to avoid injecting generic samples.)
 
   console.log('Seed complete.')
   process.exit(0)
