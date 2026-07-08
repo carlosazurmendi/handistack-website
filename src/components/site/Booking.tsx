@@ -27,6 +27,7 @@ export function Booking({ content }: { content: any }) {
   const [domain, setDomain] = useState('')
   const [bottleneck, setBottleneck] = useState('')
   const [timeline, setTimeline] = useState<string | null>(null)
+  const [consent, setConsent] = useState(false)
 
   const [leadId, setLeadId] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -41,7 +42,7 @@ export function Booking({ content }: { content: any }) {
   const [busy, setBusy] = useState(false)
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
-  const triageValid = name.trim().length > 1 && emailOk && domain.trim().length > 2 && bottleneck.trim().length > 4 && !!timeline
+  const triageValid = name.trim().length > 1 && emailOk && domain.trim().length > 2 && bottleneck.trim().length > 4 && !!timeline && consent
 
   /* ---- Step 1: submit triage, forward to n8n ---- */
   async function submitTriage() {
@@ -247,6 +248,10 @@ export function Booking({ content }: { content: any }) {
                   ))}
                 </div>
                 <div className="cal-bot"><Icon name="bot" /> Your answers route to our automated qualification assistant to verify your fit before your slot is confirmed.</div>
+                <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', margin: '2px 0', fontSize: 13.5, lineHeight: 1.5, color: 'var(--fg-2)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required aria-required="true" style={{ marginTop: 3, width: 16, height: 16, flex: '0 0 auto', accentColor: 'var(--neon-blue)', cursor: 'pointer' }} />
+                  <span>I agree to be contacted by Handistack about my request and to receive related communications. See our <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--neon-blue)', textDecoration: 'none' }}>Privacy Policy</a>.</span>
+                </label>
                 {submitError && <div className="cal-bot" style={{ color: 'var(--danger, #F0392B)' }}><Icon name="alert-triangle" /> {submitError}</div>}
                 <button className="btn btn-neon cal-cta" disabled={!triageValid || busy} onClick={submitTriage}>
                   {busy ? 'Submitting…' : 'Continue'} <Icon name="arrow-right" />
