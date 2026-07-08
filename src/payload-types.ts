@@ -245,6 +245,14 @@ export interface Lead {
     | boolean
     | null;
   source?: string | null;
+  /**
+   * User agreed on the booking form to be contacted / receive communications.
+   */
+  consent?: boolean | null;
+  /**
+   * Timestamp when consent was given.
+   */
+  consentAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -563,6 +571,8 @@ export interface LeadsSelect<T extends boolean = true> {
   score?: T;
   n8nRaw?: T;
   source?: T;
+  consent?: T;
+  consentAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -716,6 +726,60 @@ export interface Marketing {
   ctaTitle?: string | null;
   ctaBody?: string | null;
   ctaButton?: string | null;
+  blueprintEyebrow?: string | null;
+  /**
+   * Plain part of the heading.
+   */
+  blueprintTitle?: string | null;
+  /**
+   * Trailing words in the neon gradient.
+   */
+  blueprintTitleAccent?: string | null;
+  blueprintBody?: string | null;
+  manifestoKicker?: string | null;
+  manifestoTitle?: string | null;
+  manifestoLead?: string | null;
+  manifestoBody1?: string | null;
+  /**
+   * Supports inline HTML (<strong>, <span class="neon-text">).
+   */
+  manifestoBody2?: string | null;
+  /**
+   * Text for the three blueprint tabs (Application / Automation / Agentic). Diagram layout stays in code.
+   */
+  blueprintTabs?:
+    | {
+        /**
+         * Tab label.
+         */
+        short?: string | null;
+        title?: string | null;
+        desc?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  archEyebrow?: string | null;
+  archTitle?: string | null;
+  archBody?: string | null;
+  /**
+   * The three architecture pillars. Icons stay in code.
+   */
+  pillars?:
+    | {
+        h3: string;
+        body: string;
+        tags?:
+          | {
+              value: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  casesEyebrow?: string | null;
+  casesTitle?: string | null;
+  casesBody?: string | null;
   resultsEyebrow?: string | null;
   resultsTitle?: string | null;
   resultsBody?: string | null;
@@ -749,6 +813,10 @@ export interface Marketing {
   unqualifiedMessage?: string | null;
   footerTagline?: string | null;
   contactEmail?: string | null;
+  /**
+   * Bottom-bar copyright line.
+   */
+  footerCopyright?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -767,6 +835,42 @@ export interface MarketingSelect<T extends boolean = true> {
   ctaTitle?: T;
   ctaBody?: T;
   ctaButton?: T;
+  blueprintEyebrow?: T;
+  blueprintTitle?: T;
+  blueprintTitleAccent?: T;
+  blueprintBody?: T;
+  manifestoKicker?: T;
+  manifestoTitle?: T;
+  manifestoLead?: T;
+  manifestoBody1?: T;
+  manifestoBody2?: T;
+  blueprintTabs?:
+    | T
+    | {
+        short?: T;
+        title?: T;
+        desc?: T;
+        id?: T;
+      };
+  archEyebrow?: T;
+  archTitle?: T;
+  archBody?: T;
+  pillars?:
+    | T
+    | {
+        h3?: T;
+        body?: T;
+        tags?:
+          | T
+          | {
+              value?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  casesEyebrow?: T;
+  casesTitle?: T;
+  casesBody?: T;
   resultsEyebrow?: T;
   resultsTitle?: T;
   resultsBody?: T;
@@ -794,6 +898,7 @@ export interface MarketingSelect<T extends boolean = true> {
   unqualifiedMessage?: T;
   footerTagline?: T;
   contactEmail?: T;
+  footerCopyright?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

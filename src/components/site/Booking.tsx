@@ -52,7 +52,7 @@ export function Booking({ content }: { content: any }) {
       const res = await fetch('/book/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, domain, bottleneck, timeline }),
+        body: JSON.stringify({ name, email, phone, domain, bottleneck, timeline, consent }),
       })
       const data = await res.json()
       if (!res.ok) {

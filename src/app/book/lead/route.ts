@@ -22,9 +22,13 @@ export async function POST(req: Request) {
   const domain = String(body.domain || '').trim().replace(/^https?:\/\//, '')
   const bottleneck = String(body.bottleneck || '').trim()
   const timeline = body.timeline ? String(body.timeline).trim() : undefined
+  const consent = body.consent === true
 
   if (name.length < 2 || !emailRe.test(email) || domain.length < 3 || bottleneck.length < 5) {
     return NextResponse.json({ error: 'Missing or invalid fields' }, { status: 422 })
+  }
+  if (!consent) {
+    return NextResponse.json({ error: 'Consent to be contacted is required' }, { status: 422 })
   }
 
   let payload
@@ -34,7 +38,7 @@ export async function POST(req: Request) {
     lead = await payload.create({
       collection: 'leads',
       overrideAccess: true,
-      data: { name, email, phone, domain, bottleneck, timeline, status: 'researching', source: 'marketing-site' },
+      data: { name, email, phone, domain, bottleneck, timeline, status: 'researching', source: 'marketing-site', consent: true, consentAt: new Date().toISOString() },
     })
   } catch (err) {
     // Almost always a database connectivity problem (e.g. wrong DATABASE_URI, or the

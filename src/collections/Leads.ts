@@ -132,5 +132,23 @@ export const Leads: CollectionConfig = {
       defaultValue: 'marketing-site',
       admin: { readOnly: true },
     },
+    {
+      name: 'consent',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        readOnly: true,
+        description: 'User agreed on the booking form to be contacted / receive communications.',
+      },
+    },
+    {
+      name: 'consentAt',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        description: 'Timestamp when consent was given.',
+        date: { pickerAppearance: 'dayAndTime' },
+      },
+    },
   ],
 }
