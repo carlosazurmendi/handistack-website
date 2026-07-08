@@ -672,8 +672,8 @@ function Footer({ content }: { content: Content }) {
         <div className="footer-bot">
           <span>{content?.footerCopyright || '© 2026 Handistack — AI Consulting. All rights reserved.'}</span>
           <span style={{ display: 'flex', gap: 20 }}>
-            <a href="#" style={{ display: 'inline' }}>Privacy</a>
-            <a href="#" style={{ display: 'inline' }}>Terms</a>
+            <a href="/privacy" style={{ display: 'inline' }}>Privacy</a>
+            <a href="/terms" style={{ display: 'inline' }}>Terms</a>
           </span>
         </div>
       </div>
