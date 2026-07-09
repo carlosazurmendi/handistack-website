@@ -711,3 +711,16 @@ collection writes.
 fields cannot set anything. (Explicit allowlisting is already the pattern; a
 schema library like zod would formalize it but adds a dependency for little gain
 at this surface.)
+
+## 66. Move hardcoded secrets to environment variables — APPLIED
+
+**Finding:** Scan of the tree found no hardcoded API keys/tokens/DB passwords — all
+real secrets already load from env (`PAYLOAD_SECRET`, `N8N_*`, `DATABASE_URI`,
+`GOOGLE_SERVICE_ACCOUNT_*`). The one credential literal was the seed script's
+fallback admin password `'ChangeMe!Handistack1'` (also now rejected by the item-2
+policy). Non-secret defaults (an impersonation email, header *names*, a public
+booking URL) are not secrets.
+
+**Action:** Removed the hardcoded seed password. The seed now uses
+`SEED_ADMIN_PASSWORD` or mints a strong random password (policy-valid) printed once
+at creation. `.env.example` documents required vars with no real values.

@@ -1,7 +1,19 @@
 import 'dotenv/config'
+import { randomBytes } from 'crypto'
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { marketingContent } from './content'
+import { validatePasswordStrength } from '../lib/passwordPolicy'
+
+// Generate a strong random admin password when SEED_ADMIN_PASSWORD isn't provided,
+// so no weak credential is ever hardcoded in the source. Printed once so the
+// operator can log in and immediately change it.
+function generateStrongPassword(): string {
+  for (;;) {
+    const pw = randomBytes(24).toString('base64').slice(0, 24)
+    if (validatePasswordStrength(pw) === true) return pw
+  }
+}
 
 // Idempotent seed: first admin user + full marketing copy + sample case studies.
 // Run with: pnpm seed
@@ -20,7 +32,10 @@ async function run() {
   const payload = await getPayload({ config })
 
   const email = process.env.SEED_ADMIN_EMAIL || 'cazurmendi@handistack.com'
-  const password = process.env.SEED_ADMIN_PASSWORD || 'ChangeMe!Handistack1'
+  // Never ship a hardcoded password. Use the env value, or mint a strong random
+  // one (which also satisfies the password policy in src/lib/passwordPolicy.ts).
+  const envPassword = process.env.SEED_ADMIN_PASSWORD
+  const password = envPassword || generateStrongPassword()
   const overwrite = process.env.SEED_OVERWRITE === 'true'
 
   // ---- Admin user ----
@@ -31,7 +46,12 @@ async function run() {
       overrideAccess: true,
       data: { email, password, name: 'Handistack Admin', role: 'admin' },
     })
-    console.log(`✓ Created admin user ${email} (password: ${password} — change it after first login)`)
+    if (envPassword) {
+      console.log(`✓ Created admin user ${email} (using SEED_ADMIN_PASSWORD — change it after first login)`)
+    } else {
+      console.log(`✓ Created admin user ${email}`)
+      console.log(`  Generated password (shown once — save it, then change after first login):\n    ${password}`)
+    }
   } else {
     console.log('• Users already exist, skipping admin creation')
   }
