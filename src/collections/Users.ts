@@ -5,7 +5,15 @@ import { validatePasswordStrength } from '@/lib/passwordPolicy'
 // Admin / editor accounts for the Payload admin portal (adminportal.handistack.com).
 export const Users: CollectionConfig = {
   slug: 'users',
-  auth: true,
+  // Account-scoped brute-force lockout: after 5 consecutive failures Payload locks
+  // the account for 15 minutes, resetting on a successful login. This is keyed on
+  // the account (not the IP), so it can't be evaded by rotating IPs, and Payload
+  // normalizes the email so it can't be evaded by changing case. Complements the
+  // per-IP throttle in middleware. Payload never reveals the remaining count.
+  auth: {
+    maxLoginAttempts: 5,
+    lockTime: 15 * 60 * 1000,
+  },
   hooks: {
     // Enforce the password strength policy server-side whenever a password is set
     // (create, admin change, or reset). Runs before validation so a weak password

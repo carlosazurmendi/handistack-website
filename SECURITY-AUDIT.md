@@ -51,3 +51,12 @@ applied it in `src/middleware.ts` to POSTs against login, forgot-password,
 reset-password, refresh-token, and first-register: 10 attempts/min per IP,
 returning `429` + `Retry-After`. Complements the per-account lockout in item 4.
 Single-container in-memory store; swap for Redis if scaled out.
+
+## 4. Lock accounts after repeated failures — APPLIED
+
+**Finding:** `users` used `auth: true` with Payload defaults; no explicit lockout.
+
+**Action:** Set `auth.maxLoginAttempts: 5` and `auth.lockTime: 15min` on the
+`users` collection. Payload tracks failures per-account (immune to IP rotation),
+normalizes the email (immune to case tricks), resets on success, and does not
+disclose the remaining attempt count.
