@@ -1042,3 +1042,17 @@ two security goals. Names are not fully randomized.
 dedupe. Combined with raster-only types (item 91) and off-webroot serving in prod
 (item 93), the residual risk is cosmetic (predictable names). Noted: add an upload
 hook to assign a random UUID filename if unpredictability is desired.
+
+## 95. Serve user files without execution — APPLIED (verified)
+
+**Finding:** Uploaded media is served back to users; the risk is a file executing
+as script/HTML in a viewer's session.
+
+**Action:** Multiple layers ensure it can't: only raster image types are accepted
+(item 91 — no SVG/HTML), files are re-encoded by sharp, `X-Content-Type-Options:
+nosniff` (item 74) prevents MIME-sniffing to an executable type, and in production
+media is served from the Supabase Storage CDN — a separate origin from the app
+(item 93), isolating it from any session. Images are intentionally rendered inline
+(not force-downloaded) since displaying them is the feature; the type/nosniff
+controls make that safe. Any future non-image upload type should be served with
+`Content-Disposition: attachment`.
