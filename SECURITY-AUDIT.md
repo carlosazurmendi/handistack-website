@@ -399,3 +399,12 @@ Payload `where` clauses in the code use server-controlled typed values (e.g.
 typed SDKs (googleapis, Payload) and `fetch`.
 
 **Action:** None — no command-execution surface.
+
+## 36. Close ORM-level injection vectors — N/A (verified)
+
+**Finding:** No raw-query/raw-fragment escape hatches are used with user input.
+`findByID`/`find`/`create`/`update` are called with typed values and static
+`sort` fields; Payload validates the id type. No user input selects columns,
+operators, or sort direction.
+
+**Action:** None — the ORM is used safely.
