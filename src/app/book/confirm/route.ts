@@ -68,6 +68,29 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
   }
 
+  // Idempotency: if this lead already has a booking (double-click, retry, or a
+  // duplicated request), return the existing one instead of creating a second
+  // Calendar event. This makes the endpoint safe to call more than once.
+  const existing = await payload.find({
+    collection: 'bookings',
+    where: { lead: { equals: Number(leadId) } },
+    overrideAccess: true,
+    depth: 0,
+    limit: 1,
+    pagination: false,
+  })
+  if (existing.docs.length > 0) {
+    const b = existing.docs[0]
+    return NextResponse.json({
+      ok: true,
+      meetLink: b.meetLink ?? null,
+      htmlLink: null,
+      startISO: b.startTime,
+      label: b.slotLabel ?? label,
+      idempotent: true,
+    })
+  }
+
   // Gate: only qualified (or already-booked, idempotent retry) leads can book.
   if (lead.status !== 'qualified' && lead.status !== 'booked') {
     return NextResponse.json({ error: 'Lead is not qualified for booking' }, { status: 403 })

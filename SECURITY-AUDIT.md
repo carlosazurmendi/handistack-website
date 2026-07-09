@@ -983,3 +983,17 @@ enum) and confirms the lead exists before acting.
 naturally idempotent (updates the lead by id to a fixed verdict), so a replay just
 re-writes the same state. Noted enhancement: add a timestamp/nonce if n8n begins
 sending one, for explicit replay protection.
+
+## 90. Add idempotency keys to mutations — APPLIED
+
+**Finding:** `/book/confirm` created a Google Calendar event + booking row on every
+call. Its status gate allowed a lead already in `booked` state to proceed, so a
+double-click, network retry, or replay would create a *second* calendar event and
+booking (double-booking + resource abuse).
+
+**Action:** Made `/book/confirm` idempotent: before creating anything it looks up
+an existing booking for the lead and, if found, returns that booking's details
+(`idempotent: true`) instead of creating a duplicate. Combined with the existing
+`isSlotFree` check and the confirm rate limit (item 84), a repeated request now has
+the same effect as a single one. (A per-request idempotency key would further guard
+distinct slots, noted as an enhancement.)
