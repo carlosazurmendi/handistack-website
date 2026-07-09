@@ -141,3 +141,14 @@ verification that is enforced only when `TURNSTILE_SECRET_KEY` is set (fails
 closed when enabled, no-op otherwise) so the live form isn't broken before a site
 key is wired in. Legitimate/AT users are unaffected. Per-IP submission caps come
 in item 84.
+
+## 12. Throttle password reset and verification emails — APPLIED
+
+**Finding:** `/api/users/forgot-password` (and `/verify`) send outbound mail via
+Gmail and had no throttle, so they could be used to spam a victim or run up cost.
+
+**Action:** Split the middleware limiter into a dedicated stricter bucket for
+email-triggering endpoints: 3 requests / 5 min per IP (vs 10/min for auth),
+returning 429 + Retry-After and a neutral message that doesn't reveal whether the
+address is registered. Payload doesn't expose the recipient at this layer, so
+keying is per-IP; per-address keying would require a forgot-password hook.

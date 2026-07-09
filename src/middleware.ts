@@ -12,27 +12,36 @@ const ADMIN_HOST = process.env.ADMIN_HOST || 'adminportal.handistack.com'
 // email triggers are included so they can't be used to spam a victim's inbox.
 const AUTH_RATE_LIMITED = [
   '/api/users/login',
-  '/api/users/forgot-password',
   '/api/users/reset-password',
   '/api/users/refresh-token',
   '/api/users/first-register',
 ]
 
+// Endpoints that send an outbound email/SMS. Throttled harder — both to stop an
+// attacker spamming a victim's inbox and to cap provider cost. Keyed per-IP;
+// Payload doesn't expose the recipient here for per-address keying.
+const EMAIL_TRIGGER = ['/api/users/forgot-password', '/api/users/verify']
+
 export function middleware(req: NextRequest) {
   const host = (req.headers.get('host') || '').split(':')[0].toLowerCase()
   const { pathname } = req.nextUrl
 
-  // Per-IP throttle on authentication endpoints (POST only — reads are harmless).
-  if (req.method === 'POST' && AUTH_RATE_LIMITED.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
-    const ip = clientIp(req.headers)
-    // 10 attempts/minute per IP is generous for a human mistyping a password but
-    // makes automated guessing impractical.
-    const rl = rateLimit(`auth:${ip}:${pathname}`, { max: 10, windowMs: 60_000 })
-    if (!rl.ok) {
-      return NextResponse.json(
-        { error: 'Too many attempts. Please wait and try again.' },
-        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
-      )
+  // Per-IP throttle on authentication + email-triggering endpoints (POST only).
+  if (req.method === 'POST') {
+    const isEmail = EMAIL_TRIGGER.some((p) => pathname === p || pathname.startsWith(p + '/'))
+    const isAuth = AUTH_RATE_LIMITED.some((p) => pathname === p || pathname.startsWith(p + '/'))
+    if (isEmail || isAuth) {
+      const ip = clientIp(req.headers)
+      // Email triggers: 3 per 5 min (stop inbox spam / cost). Auth: 10/min
+      // (generous for a human mistyping, impractical for automated guessing).
+      const opts = isEmail ? { max: 3, windowMs: 5 * 60_000 } : { max: 10, windowMs: 60_000 }
+      const rl = rateLimit(`rl:${ip}:${pathname}`, opts)
+      if (!rl.ok) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please wait and try again.' },
+          { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+        )
+      }
     }
   }
 
