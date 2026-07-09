@@ -616,3 +616,12 @@ the admin Live-Preview iframe.)
 `next.config.mjs` so the admin panel can't be framed by third-party sites. The
 marketing pages are protected by `frame-ancestors 'self' https://<ADMIN_HOST>`
 (item 45), which both blocks clickjacking and preserves Live Preview.
+
+## 57. Validate OAuth redirect URIs strictly — N/A
+
+**Finding:** There is no user-facing OAuth/social-login flow. Google integration
+uses a domain-wide-delegated service account (server-to-server JWT with a private
+key) — no authorization-code flow, no redirect URIs, no `state`/PKCE surface.
+Admin login is Payload's own email/password.
+
+**Action:** None — no OAuth redirect handling exists.
