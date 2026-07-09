@@ -31,6 +31,9 @@ const frontendCsp = [
 const nextConfig = {
   // Standalone output so the Docker image stays small (pulled via Dockhand on the GCP VPS).
   output: 'standalone',
+  // Don't advertise the framework in an X-Powered-By header (reduces the info an
+  // attacker gets for free). The upstream proxy strips/normalizes the Server header.
+  poweredByHeader: false,
   // Pin the workspace root (a stray lockfile in the home dir otherwise confuses Next).
   turbopack: { root: dirname },
   outputFileTracingRoot: dirname,

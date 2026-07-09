@@ -773,3 +773,24 @@ be rotated.
 any `TURNSTILE_SECRET_KEY`; change the admin account password. Load the new values
 via Dockhand env only. The item-18 guard now refuses to boot prod with a weak
 `PAYLOAD_SECRET`.
+
+## 71. Hide stack traces in production — APPLIED (verified)
+
+**Finding:** The frontend error boundary (`error.tsx`) renders a generic "Something
+went wrong" message and only `console.error`s the error (never renders
+`error.message`/stack to the DOM). The custom routes return generic messages
+(`Could not save your request…`, `Invalid JSON`) with full details going to
+server logs only. Next.js production replaces server errors with an opaque digest,
+and Payload doesn't emit stack traces in prod responses.
+
+**Action:** None — errors shown to users are already generic; diagnostics are
+server-side only.
+
+## 72. Remove revealing server response headers — APPLIED
+
+**Finding:** Next.js sent an `X-Powered-By: Next.js` header by default.
+
+**Action:** Set `poweredByHeader: false` in `next.config.mjs` to drop it. The
+`Server` header is normalized by the Traefik/Cloudflare layer in front of the app.
+Security headers (CSP, X-Frame-Options, HSTS, nosniff, Referrer-Policy,
+Permissions-Policy) are added in items 45/56/74/76.
