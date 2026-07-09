@@ -192,3 +192,12 @@ token.
 
 **Action:** None — verification is entirely framework-owned and enforced per
 request.
+
+## 17. Block JWT algorithm confusion attacks — N/A (verified)
+
+**Finding:** Payload signs and verifies with a fixed HMAC algorithm using
+`PAYLOAD_SECRET`; it does not read the algorithm from the incoming token and has
+no asymmetric/symmetric key that could be confused. No `alg: none` acceptance.
+
+**Action:** None — the signing algorithm is fixed by the framework, not chosen by
+the token.
