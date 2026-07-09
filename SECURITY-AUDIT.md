@@ -747,3 +747,29 @@ Next never inlines them into the client bundle.
 
 **Action:** None — no secret reaches the browser. Sensitive operations (Google,
 n8n, DB) all run server-side behind route handlers.
+
+## 69. Separate development and production credentials — APPLIED (verified)
+
+**Finding:** Configuration is entirely env-driven. Local dev loads a gitignored
+`.env` (Supabase pooler URI, local `APP_URL=http://localhost:3000`,
+`PAYLOAD_DB_PUSH=false`); production loads separate values via Dockhand env on the
+VPS. Debug/dev-only behavior is gated on `NODE_ENV` (CSP relaxations, cookie
+Secure flag, the production secret guard). No production secret is present in dev
+config or the repo.
+
+**Action:** None structural — environments are already isolated by separate env
+sources. Recommendation retained: keep the dev DB/user distinct from prod.
+
+## 70. Rotate any exposed or leaked secrets — DOCUMENTED (operator action)
+
+**Finding:** No secrets are exposed in code/logs/bundles now. However, project
+memory records that setup secrets were shared out-of-band during initial build and
+the seeded admin password default existed in source — anything ever exposed should
+be rotated.
+
+**Action (operator must perform — can't be done from the repo):** rotate
+`PAYLOAD_SECRET` (invalidates all sessions), the Supabase `DATABASE_URI` password,
+`N8N_WEBHOOK_TOKEN` + `N8N_CALLBACK_SECRET`, the Google service-account key, and
+any `TURNSTILE_SECRET_KEY`; change the admin account password. Load the new values
+via Dockhand env only. The item-18 guard now refuses to boot prod with a weak
+`PAYLOAD_SECRET`.
