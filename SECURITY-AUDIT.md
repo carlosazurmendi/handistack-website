@@ -522,3 +522,11 @@ message) all go through escaped interpolation.
 
 **Action:** The one stored-HTML path is sanitized; everything else is
 auto-escaped. No stored payload can execute in another user's browser.
+
+## 48. Block server-side template injection — N/A
+
+**Finding:** There is no server-side templating engine that evaluates
+user-controlled input. Rendering is React JSX (data is escaped, not compiled as a
+template), and emails are built from fixed string templates with escaped values.
+
+**Action:** None — no template-evaluation surface.
