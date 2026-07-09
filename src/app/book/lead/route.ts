@@ -5,6 +5,7 @@ import { verifyTurnstile } from '@/lib/turnstile'
 import { clientIp } from '@/lib/rateLimit'
 import { signPollToken } from '@/lib/pollToken'
 import { sameOriginOk } from '@/lib/originCheck'
+import { tooLarge } from '@/lib/httpGuards'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,6 +18,9 @@ export async function POST(req: Request) {
   // scripting this endpoint from a visitor's browser).
   if (!sameOriginOk(req)) {
     return NextResponse.json({ error: 'Cross-origin request rejected' }, { status: 403 })
+  }
+  if (tooLarge(req, 32 * 1024)) {
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
   }
 
   let body: Record<string, unknown>

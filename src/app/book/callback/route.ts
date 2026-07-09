@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
 import { safeEqual } from '@/lib/safeCompare'
+import { tooLarge } from '@/lib/httpGuards'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,9 @@ export async function POST(req: Request) {
   // via response timing. Also fail closed if the server secret is unset.
   if (!process.env.N8N_CALLBACK_SECRET || !safeEqual(secret, process.env.N8N_CALLBACK_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  if (tooLarge(req, 256 * 1024)) {
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
   }
 
   let body: Record<string, unknown>

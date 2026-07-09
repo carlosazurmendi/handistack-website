@@ -647,3 +647,13 @@ be in the past (60s skew allowed); `label` is capped at 120 chars. Combined with
 the per-field length caps in item 39 and the enum check on the callback status,
 inputs are now type/format/range validated on the server. (Payload schema-validates
 all collection fields.)
+
+## 60. Cap request body and payload size — APPLIED
+
+**Finding:** Next App Router route handlers don't apply a body-size limit, so
+`/book/*` `req.json()` would read an arbitrarily large body.
+
+**Action:** Added `src/lib/httpGuards.ts#tooLarge` (Content-Length check → 413) and
+applied per-endpoint caps: `/book/lead` 32KB, `/book/confirm` 16KB, `/book/callback`
+256KB (its n8n payload can be larger). Payload enforces its own upload limits
+(item 92), and Traefik/Cloudflare cap request size upstream as a hard backstop.

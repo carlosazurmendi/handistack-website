@@ -4,6 +4,7 @@ import { createBooking } from '@/lib/booking'
 import { isSlotFree } from '@/lib/availability'
 import { CALENDAR_TZ } from '@/lib/google'
 import { sameOriginOk } from '@/lib/originCheck'
+import { tooLarge } from '@/lib/httpGuards'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,9 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: Request) {
   if (!sameOriginOk(req)) {
     return NextResponse.json({ error: 'Cross-origin request rejected' }, { status: 403 })
+  }
+  if (tooLarge(req, 16 * 1024)) {
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
   }
 
   let body: Record<string, unknown>
