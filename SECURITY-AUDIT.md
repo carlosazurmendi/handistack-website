@@ -501,3 +501,13 @@ admin Live-Preview iframe to frame the site). `script-src` keeps `'unsafe-inline
 renders, lucide loads, zero CSP violations in console; admin correctly receives no
 CSP. Follow-up: self-host lucide + move to nonce-based script-src to drop
 `'unsafe-inline'`.
+
+## 46. Eliminate DOM-based XSS sinks — N/A (verified)
+
+**Finding:** No client code routes untrusted browser data into a dangerous sink.
+The only `innerHTML` write is `ref.current.innerHTML = ''` (a reset to empty, no
+data). No `document.write`, `eval`, `new Function`, or string `setTimeout`. The
+sole `postMessage` consumer is Payload's `useLivePreview` (framework, same-origin,
+origin-checked). No reads of `location.hash`/`search` into markup.
+
+**Action:** None — no source-to-sink flow exists.
