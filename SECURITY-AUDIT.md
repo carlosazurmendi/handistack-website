@@ -29,3 +29,13 @@ reversible ciphertext. No MD5/SHA1/DES anywhere.
 **Action:** None required — this is a vetted slow salted KDF. Payload also
 re-derives/verifies server-side, so the "re-hash on next login" upgrade path is
 inherent to the framework. Documented here rather than forcing an edit.
+
+## 2. Enforce strong password requirements — APPLIED
+
+**Finding:** Payload ships no password-complexity policy; any length was accepted.
+
+**Action:** Added `src/lib/passwordPolicy.ts` (min 12 chars, max 256, rejects a
+common/breached list, blocks single-repeat-char, requires ≥3 of 4 character
+classes) and wired it into a `beforeValidate` hook on the `users` collection
+(`src/collections/Users.ts`). It runs server-side for create, admin change, and
+reset, returning a friendly `APIError` message. Client cannot bypass it.
