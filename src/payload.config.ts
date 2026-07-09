@@ -119,6 +119,15 @@ export default buildConfig({
     },
   },
   editor: lexicalEditor(),
+  // GraphQL is auto-exposed by Payload but unused by the app (it uses the Local
+  // API). Cap query complexity to stop expensive nested queries, and in production
+  // disable schema introspection and the interactive playground so the schema
+  // can't be trivially enumerated. Access control still applies to every field.
+  graphQL: {
+    maxComplexity: 200,
+    disableIntrospectionInProduction: true,
+    disablePlaygroundInProduction: true,
+  },
   collections: [Users, Media, Leads, Bookings, Categories, Posts, CaseStudies, Testimonials],
   globals: [Marketing],
   secret: PAYLOAD_SECRET,

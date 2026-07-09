@@ -926,3 +926,22 @@ aware) with 429 + Retry-After on every booking endpoint: `/book/lead` 5 / 10min
 (polled), `/book/availability` 60/min, `/book/callback` 60/min. Payload's own API
 is throttled at the auth endpoints via middleware (items 3/12). Single-container
 in-memory store; swap for Redis when horizontally scaled.
+
+## 85. Limit GraphQL query depth and cost — APPLIED
+
+**Finding:** Payload exposes a GraphQL API (`/api/graphql`) with no complexity cap,
+so a deeply nested query could strain the backend.
+
+**Action:** Set `graphQL.maxComplexity = 200` in `payload.config.ts` to reject
+overly expensive queries. Access control still gates every field/collection, and
+the booking API has its own rate limits (item 84).
+
+## 86. Disable GraphQL introspection in production — APPLIED
+
+**Finding:** GraphQL introspection and the interactive playground were reachable,
+letting anyone enumerate the full schema.
+
+**Action:** Set `graphQL.disableIntrospectionInProduction = true` and
+`disablePlaygroundInProduction = true` in `payload.config.ts`. Both stay available
+in development for DX but are off in production. The app itself doesn't use
+GraphQL (it uses Payload's Local API), so this has no functional impact.
