@@ -7,6 +7,7 @@ import { signPollToken } from '@/lib/pollToken'
 import { sameOriginOk } from '@/lib/originCheck'
 import { tooLarge, wantsJson } from '@/lib/httpGuards'
 import { rateLimit } from '@/lib/rateLimit'
+import { logSecurityEvent } from '@/lib/securityLog'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,7 @@ export async function POST(req: Request) {
   // Reject cross-site browser origins (defense-in-depth against another site
   // scripting this endpoint from a visitor's browser).
   if (!sameOriginOk(req)) {
+    logSecurityEvent('booking.origin_rejected', { ip: clientIp(req.headers), origin: req.headers.get('origin') })
     return NextResponse.json({ error: 'Cross-origin request rejected' }, { status: 403 })
   }
   if (tooLarge(req, 32 * 1024)) {
@@ -29,6 +31,7 @@ export async function POST(req: Request) {
   // Lead creation is expensive (DB write + n8n research). Cap per IP.
   const rl = rateLimit(`book:lead:${clientIp(req.headers)}`, { max: 5, windowMs: 10 * 60_000 })
   if (!rl.ok) {
+    logSecurityEvent('booking.rate_limited', { ip: clientIp(req.headers), route: 'lead' })
     return NextResponse.json(
       { error: 'Too many requests. Please wait a moment and try again.' },
       { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
@@ -67,6 +70,7 @@ export async function POST(req: Request) {
   // Honeypot: this field is hidden from real users, so any value means a bot.
   // Respond with a generic 400 rather than revealing why.
   if (String(body.company_website || '').trim() !== '') {
+    logSecurityEvent('booking.honeypot_tripped', { ip: clientIp(req.headers) })
     return NextResponse.json({ error: 'Invalid submission' }, { status: 400 })
   }
 
@@ -120,6 +124,8 @@ export async function POST(req: Request) {
       { status: 502 },
     )
   }
+
+  logSecurityEvent('booking.lead_created', { leadId: String(lead.id), ip: clientIp(req.headers) })
 
   // Issue a capability token the client must present to poll this lead's status,
   // so lead ids (sequential integers) can't be enumerated by outsiders.

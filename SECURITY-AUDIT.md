@@ -1096,3 +1096,16 @@ supply-chain dependency entirely (strictly better than SRI) and let me drop
 `https://unpkg.com` from the CSP `script-src`. **Verified via preview**: 55 icons
 render, `window.lucide` present, no CSP violations. No remaining externally-loaded
 scripts/styles require SRI; fonts load from Google with the CSP restricting origins.
+
+## 99. Log security events for monitoring — APPLIED
+
+**Finding:** Security-relevant events on the public API weren't captured in a
+consistent, queryable form.
+
+**Action:** Added `src/lib/securityLog.ts#logSecurityEvent` (one structured JSON
+line per event with a timestamp) and emit events from the booking flow:
+`booking.callback_auth_failed` (n8n callback bad/absent secret),
+`booking.origin_rejected`, `booking.rate_limited`, `booking.honeypot_tripped`, and
+`booking.lead_created` — each with the source IP but **no secrets or full PII**.
+Payload logs its own admin auth events (login/failure) via its logger. These lines
+can be grepped/shipped to spot brute-force, scraping, or abuse patterns.

@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/lib/payload'
 import { safeEqual } from '@/lib/safeCompare'
 import { tooLarge } from '@/lib/httpGuards'
 import { rateLimit, clientIp } from '@/lib/rateLimit'
+import { logSecurityEvent } from '@/lib/securityLog'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
   // Constant-time compare so an attacker can't recover the secret byte-by-byte
   // via response timing. Also fail closed if the server secret is unset.
   if (!process.env.N8N_CALLBACK_SECRET || !safeEqual(secret, process.env.N8N_CALLBACK_SECRET)) {
+    logSecurityEvent('booking.callback_auth_failed', { ip: clientIp(req.headers) })
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   if (tooLarge(req, 256 * 1024)) {
