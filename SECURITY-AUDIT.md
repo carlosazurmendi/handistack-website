@@ -310,3 +310,16 @@ for writes, and there is no unauthenticated write path.
 
 **Action:** None beyond item 25's explicit `users` rules — the baseline posture is
 already deny-by-default. New collections inherit the same default.
+
+## 27. Lock down all admin routes — APPLIED (verified) / see item 86
+
+**Finding:** The Payload admin panel is gated by the `admin` access function
+(requires a logged-in user) and every collection API enforces its own access. No
+forgotten debug/setup endpoints exist in app code. Two notes: (a) the admin panel
+is reachable at both `adminportal.handistack.com` and `handistack.com/admin`, but
+both still require authentication, so this is a routing preference, not an
+exposure; (b) the GraphQL Playground route is disabled for production in item 86.
+
+**Action:** Verified admin auth gating. Privileged account actions are locked to
+admins (item 25) and privilege fields to admins (item 28). Playground lockdown in
+item 86.
