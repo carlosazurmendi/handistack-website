@@ -736,3 +736,14 @@ No secret material is in the tree.
 the operator with a live clone (can't safely rewrite/force-push in this unattended
 pass). Per project memory, setup secrets shared out-of-band should still be treated
 as compromised and rotated — see item 70.
+
+## 68. Keep secrets out of client bundles — APPLIED (verified)
+
+**Finding:** Only two `NEXT_PUBLIC_*` values exist — `NEXT_PUBLIC_SERVER_URL` and
+`NEXT_PUBLIC_GOOGLE_BOOKING_URL` — both non-secret public values. All real secrets
+(`PAYLOAD_SECRET`, `N8N_*`, `DATABASE_URI`, `GOOGLE_SERVICE_ACCOUNT_*`,
+`TURNSTILE_SECRET_KEY`) are read only in server code and are NOT `NEXT_PUBLIC`, so
+Next never inlines them into the client bundle.
+
+**Action:** None — no secret reaches the browser. Sensitive operations (Google,
+n8n, DB) all run server-side behind route handlers.
