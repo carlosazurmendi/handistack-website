@@ -945,3 +945,16 @@ letting anyone enumerate the full schema.
 `disablePlaygroundInProduction = true` in `payload.config.ts`. Both stay available
 in development for DX but are off in production. The app itself doesn't use
 GraphQL (it uses Payload's Local API), so this has no functional impact.
+
+## 87. Trim over-exposed fields in responses — APPLIED (verified)
+
+**Finding:** Reviewed what each API returns to anonymous callers. Only published
+marketing content is public (`case-studies`/`testimonials` gated on `published`,
+`marketing`, `categories`, `media`) — none of which contains sensitive fields.
+`leads`/`bookings`/`users` are auth-locked. Payload never serializes password
+hashes or reset tokens into API responses. The custom `/book/lead/[id]` returns
+only `{ status, unqualifiedMessage }` — the minimum the client needs, not the lead
+record.
+
+**Action:** Verified no endpoint over-shares. The public status endpoint already
+returns a hand-picked minimal shape rather than the whole document.
