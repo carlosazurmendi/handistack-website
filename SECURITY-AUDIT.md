@@ -698,3 +698,16 @@ declared JSON, so a form-style `text/plain`/`urlencoded` body could be parsed.
 `/book/lead` and `/book/confirm` (→ 415 otherwise). This also removes the CSRF
 "simple request" loophole for those endpoints. `/book/callback` is left tolerant
 (n8n-controlled and secret-authenticated) but still validates its body shape.
+
+## 65. Reject malformed and unexpected fields — APPLIED (verified)
+
+**Finding:** The custom routes read only an explicit set of keys, so unknown fields
+are ignored and can't inject state; malformed JSON already returns a safe generic
+400 (`{ error: 'Invalid JSON' }`) with no internals leaked. The honeypot check
+(item 11) actively rejects an unexpected field. Payload strips unknown fields on
+collection writes.
+
+**Action:** Verified malformed bodies fail closed with a generic error and unknown
+fields cannot set anything. (Explicit allowlisting is already the pattern; a
+schema library like zod would formalize it but adds a dependency for little gain
+at this surface.)
