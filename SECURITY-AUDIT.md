@@ -284,3 +284,17 @@ returns a `pollToken` on creation; `/book/lead/[id]` now requires a matching tok
 be probed. `Booking.tsx` captures the token and sends it on every poll. Other
 id-addressed routes (`/book/confirm`) already re-check the lead's status
 server-side.
+
+## 25. Implement role-based access control — APPLIED
+
+**Finding:** A `role` field (admin/editor) existed but wasn't enforced. The `users`
+collection only set the `admin` access, so create/read/update/delete fell back to
+Payload's default (`Boolean(user)`) — meaning any editor could create or delete
+accounts.
+
+**Action:** Added `src/access/roles.ts` with centralized, reusable helpers
+(`isAuthenticated`, `isAdmin`, `isAdminOrSelf`, `isAdminFieldLevel`) and applied
+them to `users`: both roles reach the panel, but create/delete are admin-only and
+read/update are admin-or-self. Content collections keep editor+admin write access
+(their default `Boolean(user)`), which is the intended editor role. The role-field
+escalation lock is item 28.

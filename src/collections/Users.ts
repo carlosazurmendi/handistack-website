@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { APIError } from 'payload'
 import { validatePasswordStrength } from '@/lib/passwordPolicy'
+import { isAdmin, isAdminOrSelf } from '@/access/roles'
 
 // Admin / editor accounts for the Payload admin portal (adminportal.handistack.com).
 export const Users: CollectionConfig = {
@@ -57,8 +58,15 @@ export const Users: CollectionConfig = {
     group: 'Admin',
   },
   access: {
-    // Only authenticated admins reach the admin panel; tighten per-role later.
+    // Both roles can reach the admin panel (this slot must return a boolean)...
     admin: ({ req: { user } }) => Boolean(user),
+    // ...but account management is admin-only. An editor can read/update only
+    // their own record and cannot create or delete users. This closes the prior
+    // gap where unspecified ops defaulted to any-authenticated-user.
+    read: isAdminOrSelf,
+    create: isAdmin,
+    update: isAdminOrSelf,
+    delete: isAdmin,
   },
   fields: [
     { name: 'name', type: 'text' },
