@@ -335,3 +335,42 @@ in an update body).
 to the `role` field on `users`, so only admins can assign or change roles. Editors
 can still edit their own name/email but the role is server-side read-only to them.
 No endpoint accepts a client-supplied role for another user.
+
+## 29. Isolate data between tenants — N/A (single-tenant)
+
+**Finding:** This is a single-tenant marketing site for one business with one
+admin team. There is no per-customer/organization data partitioning — leads,
+bookings, and content all belong to the one operator.
+
+**Action:** None — no cross-tenant boundary exists to enforce.
+
+## 30. Add function-level permission checks — APPLIED (verified)
+
+**Finding:** Payload evaluates access per operation (create/read/update/delete)
+per collection, not once per feature. `users` create/delete are admin-only,
+update/read are admin-or-self (item 25), and the `role` field has its own
+create/update guard (item 28). Content collections grant editor+admin write.
+
+**Action:** Verified each sensitive operation has its own server-side check;
+viewing does not imply editing and membership does not imply administration.
+
+## 31. Block mass assignment of fields — APPLIED (verified)
+
+**Finding:** The public `/book/lead` route builds the lead record from an explicit
+allowlist of fields (name/email/phone/domain/bottleneck/timeline) and hardcodes
+`status`, `source`, and `consent*` — user input can't set arbitrary columns. The
+n8n callback only writes verdict fields and is secret-authenticated. Privileged
+fields (`role`) are field-access-locked (item 28), which is Payload's
+mass-assignment defense.
+
+**Action:** Verified no user-controlled bulk object binding sets sensitive fields
+on create or update.
+
+## 32. Re-verify access on each request — APPLIED (verified)
+
+**Finding:** Payload runs access-control functions on every request against the
+current user/session; decisions are not cached from login. Role/permission changes
+take effect on the next request, and revoking a session (item 22) blocks access
+immediately. `tokenExpiration` bounds how long any stale token can live.
+
+**Action:** None — access is evaluated fresh per request by the framework.
