@@ -126,3 +126,18 @@ persistent token to harden. No public app login at all beyond the Payload admin.
 
 **Action:** None — the vulnerable feature isn't present. (Cookie flags and session
 lifetime are handled in items 13/14.)
+
+## 11. Add bot protection to forms — APPLIED
+
+**Finding:** The public booking form (`/book/lead`) had no bot/abuse protection;
+it could be scripted directly. No login/contact form is public besides Payload
+admin.
+
+**Action:** Two layers, both bypass-resistant because they run server-side:
+(1) a honeypot field `company_website` hidden from users and assistive tech
+(`aria-hidden`, off-screen, `tabIndex=-1`) added to `Booking.tsx` and rejected in
+the route with a generic 400; (2) `src/lib/turnstile.ts` — Cloudflare Turnstile
+verification that is enforced only when `TURNSTILE_SECRET_KEY` is set (fails
+closed when enabled, no-op otherwise) so the live form isn't broken before a site
+key is wired in. Legitimate/AT users are unaffected. Per-IP submission caps come
+in item 84.

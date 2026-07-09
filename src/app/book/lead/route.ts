@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
 import { forwardLeadToN8n } from '@/lib/n8n'
+import { verifyTurnstile } from '@/lib/turnstile'
+import { clientIp } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,11 +26,22 @@ export async function POST(req: Request) {
   const timeline = body.timeline ? String(body.timeline).trim() : undefined
   const consent = body.consent === true
 
+  // Honeypot: this field is hidden from real users, so any value means a bot.
+  // Respond with a generic 400 rather than revealing why.
+  if (String(body.company_website || '').trim() !== '') {
+    return NextResponse.json({ error: 'Invalid submission' }, { status: 400 })
+  }
+
   if (name.length < 2 || !emailRe.test(email) || domain.length < 3 || bottleneck.length < 5) {
     return NextResponse.json({ error: 'Missing or invalid fields' }, { status: 422 })
   }
   if (!consent) {
     return NextResponse.json({ error: 'Consent to be contacted is required' }, { status: 422 })
+  }
+
+  // Optional Cloudflare Turnstile challenge (only enforced when configured).
+  if (!(await verifyTurnstile(String(body.turnstileToken || ''), clientIp(req.headers)))) {
+    return NextResponse.json({ error: 'Bot verification failed' }, { status: 403 })
   }
 
   let payload

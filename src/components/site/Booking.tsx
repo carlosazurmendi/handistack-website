@@ -28,6 +28,9 @@ export function Booking({ content }: { content: any }) {
   const [bottleneck, setBottleneck] = useState('')
   const [timeline, setTimeline] = useState<string | null>(null)
   const [consent, setConsent] = useState(false)
+  // Honeypot: a field hidden from humans and assistive tech. Bots that auto-fill
+  // forms will populate it; the server rejects any submission where it's set.
+  const [hp, setHp] = useState('')
 
   const [leadId, setLeadId] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -52,7 +55,7 @@ export function Booking({ content }: { content: any }) {
       const res = await fetch('/book/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, domain, bottleneck, timeline, consent }),
+        body: JSON.stringify({ name, email, phone, domain, bottleneck, timeline, consent, company_website: hp }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -222,6 +225,17 @@ export function Booking({ content }: { content: any }) {
             {phase === 'triage' && (
               <div className="cal-pane">
                 <div className="cal-stepline"><span className="cal-step-n">Step 1 of 2</span> Qualification</div>
+                {/* Honeypot — hidden from sighted users and assistive tech. Do not remove. */}
+                <input
+                  type="text"
+                  name="company_website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  value={hp}
+                  onChange={(e) => setHp(e.target.value)}
+                  style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+                />
                 <div className="cal-row2">
                   <div className="cal-field">
                     <label className="cal-fl">Your name</label>
