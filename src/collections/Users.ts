@@ -31,6 +31,10 @@ export const Users: CollectionConfig = {
     // hard absolute-max lifetime isn't natively configurable in Payload; 2h idle is
     // the practical bound for this low-volume admin.
     tokenExpiration: 2 * 60 * 60,
+    // Don't return the raw JWT in login/refresh response bodies. The HttpOnly
+    // Secure cookie is the sole carrier, so client JS can't read the token or
+    // stash it in localStorage where an XSS could exfiltrate it.
+    removeTokenFromResponses: true,
   },
   hooks: {
     // Enforce the password strength policy server-side whenever a password is set

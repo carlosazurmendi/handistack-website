@@ -213,3 +213,13 @@ signing secret.
 secret-less CI still builds). Payload supports a single active secret; true
 zero-downtime rotation would need a multi-key verifier, noted as a follow-up. All
 other signing secrets (n8n) are already env-sourced.
+
+## 19. Store auth tokens safely client-side — APPLIED
+
+**Finding:** The admin token already lives in an HttpOnly cookie (not
+localStorage), but Payload also echoed the raw JWT in login/refresh JSON bodies,
+where client JS could read and persist it.
+
+**Action:** Set `auth.removeTokenFromResponses = true` so the token is delivered
+only via the HttpOnly + Secure cookie. The admin UI uses the cookie, so this
+doesn't affect functionality. No tokens are placed in URLs or logs anywhere.
