@@ -657,3 +657,23 @@ all collection fields.)
 applied per-endpoint caps: `/book/lead` 32KB, `/book/confirm` 16KB, `/book/callback`
 256KB (its n8n payload can be larger). Payload enforces its own upload limits
 (item 92), and Traefik/Cloudflare cap request size upstream as a hard backstop.
+
+## 61. Block path traversal in file access — N/A (verified)
+
+**Finding:** No route builds a filesystem path from user input. The only
+`readFileSync` reads the Google service-account key from an env-configured path
+(`GOOGLE_SERVICE_ACCOUNT_PATH`), not user input. Uploads are handled by Payload's
+`media` collection (see items 91–95), not by hand-rolled path joins.
+
+**Action:** None — no user-controlled file path exists.
+
+## 62. Prevent server-side request forgery — N/A (verified)
+
+**Finding:** The server makes outbound requests only to fixed, env-configured
+endpoints: the n8n webhook (`N8N_WEBHOOK_URL`), Google APIs (via SDK), and the
+Turnstile verify URL (a hardcoded constant). No `fetch`/request target is derived
+from user input. The user-supplied `domain` is only embedded as text in the
+calendar description and forwarded to n8n — our server never fetches it (n8n does,
+which is outside this app's boundary).
+
+**Action:** None — no user-controlled outbound request target.
