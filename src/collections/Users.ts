@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { APIError } from 'payload'
 import { validatePasswordStrength } from '@/lib/passwordPolicy'
-import { isAdmin, isAdminOrSelf } from '@/access/roles'
+import { isAdmin, isAdminOrSelf, isAdminFieldLevel } from '@/access/roles'
 
 // Admin / editor accounts for the Payload admin portal (adminportal.handistack.com).
 export const Users: CollectionConfig = {
@@ -79,6 +79,13 @@ export const Users: CollectionConfig = {
         { label: 'Editor', value: 'editor' },
       ],
       required: true,
+      // Only admins may set or change a role. Without this, an editor (who can
+      // update their own user doc via isAdminOrSelf) could escalate themselves to
+      // admin. Field-level access is enforced server-side on create and update.
+      access: {
+        create: isAdminFieldLevel,
+        update: isAdminFieldLevel,
+      },
     },
   ],
 }

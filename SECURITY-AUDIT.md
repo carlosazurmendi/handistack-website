@@ -323,3 +323,15 @@ exposure; (b) the GraphQL Playground route is disabled for production in item 86
 **Action:** Verified admin auth gating. Privileged account actions are locked to
 admins (item 25) and privilege fields to admins (item 28). Playground lockdown in
 item 86.
+
+## 28. Close privilege escalation paths — APPLIED
+
+**Finding:** With item 25's `isAdminOrSelf`, an editor can update their own user
+document. Without a field-level guard on `role`, they could set their own role to
+`admin` — a self-escalation path (also a mass-assignment risk if `role` were sent
+in an update body).
+
+**Action:** Added field-level `access.create`/`access.update = isAdminFieldLevel`
+to the `role` field on `users`, so only admins can assign or change roles. Editors
+can still edit their own name/email but the role is server-side read-only to them.
+No endpoint accepts a client-supplied role for another user.
