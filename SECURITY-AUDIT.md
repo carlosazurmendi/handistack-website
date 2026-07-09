@@ -233,3 +233,15 @@ without re-login, over the same HttpOnly-cookie channel.
 **Action:** 2h access token + framework refresh flow. Both are transported via the
 Secure HttpOnly cookie, not a bearer token in JS. Shorter windows are possible but
 2h is a sensible balance for this single-admin panel.
+
+## 21. Rotate refresh tokens on use — N/A (framework) / noted
+
+**Finding:** Refresh is handled by Payload's `/api/users/refresh-token` against
+the server-side session store. Payload issues a fresh token and updates session
+state on refresh. Explicit refresh-token-family reuse detection is not a
+first-class Payload feature.
+
+**Action:** None applied — rotation/verification is framework-managed and tokens
+are session-bound (revocable, item 22). Full reuse-detection would require a
+custom auth strategy; noted as a possible enhancement, not a present vuln given
+the HttpOnly-cookie transport and single-admin scope.
