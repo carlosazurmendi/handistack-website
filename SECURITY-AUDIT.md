@@ -245,3 +245,14 @@ first-class Payload feature.
 are session-bound (revocable, item 22). Full reuse-detection would require a
 custom auth strategy; noted as a possible enhancement, not a present vuln given
 the HttpOnly-cookie transport and single-admin scope.
+
+## 22. Build a token revocation mechanism — N/A (verified)
+
+**Finding:** Payload 3 uses server-side sessions, so tokens are already revocable
+before expiry: each request checks the session store, logout removes the session,
+"log out everywhere" (`?allSessions=true`) clears all of an account's sessions,
+and password change/reset re-issues session state. An admin can also revoke by
+deleting sessions on the user document.
+
+**Action:** None — a server-checked session store providing immediate revocation
+already exists. This is exactly the mechanism the prompt asks to build.
