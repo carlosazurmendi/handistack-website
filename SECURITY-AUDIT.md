@@ -408,3 +408,9 @@ typed SDKs (googleapis, Payload) and `fetch`.
 operators, or sort direction.
 
 **Action:** None — the ORM is used safely.
+
+## 37. Sanitize inputs used in LDAP — N/A
+
+**Finding:** No LDAP/directory integration exists.
+
+**Action:** None.
