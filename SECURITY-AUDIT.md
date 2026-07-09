@@ -471,3 +471,17 @@ carries dynamic content.
 `<script>` tag even if the data later becomes dynamic. The `manifestoBody2` HTML
 sink is sanitized in item 44. All other output relies on React's context-aware
 escaping.
+
+## 44. Sanitize user-submitted HTML content — APPLIED
+
+**Finding:** The `manifestoBody2` marketing field is rendered via
+`dangerouslySetInnerHTML` in `Site.tsx`. It's authored in the admin, but a rogue
+or compromised editor could store a `<script>`/`onerror` payload that executes in
+every site visitor's browser (stored XSS).
+
+**Action:** Added `src/lib/sanitizeHtml.ts` — an allowlist-by-reconstruction
+sanitizer (escape everything, then re-allow only exact-match `<strong> <b> <em>
+<i> <br> <p>` and `<span class="neon-text[ neon-animated]">`). Any other markup,
+attribute, event handler, or `javascript:` URL stays inert as escaped text.
+Applied it to the `manifestoBody2` render. No dependency added; documented
+DOMPurify as the upgrade for richer/less-trusted HTML.

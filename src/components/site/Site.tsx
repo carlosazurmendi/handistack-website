@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Icon, useReveal } from './ui'
 import { Booking } from './Booking'
+import { sanitizeInlineHtml } from '@/lib/sanitizeHtml'
 
 const MARK = '/handistack-mark.png'
 
@@ -340,7 +341,7 @@ function SystemBlueprint({ content }: { content: Content }) {
             <p className="bp-lead">{content?.manifestoLead || 'We do not sell abstract AI concepts, generic consulting hours, or bloated enterprise software stacks.'}</p>
             <p className="bp-body">{content?.manifestoBody1 || 'Most software built today is saddled with immediate technical debt — locked behind expensive, fragile cloud subscriptions and rigid code structures that make automation impossible without a total rewrite.'}</p>
             {manifestoBody2 ? (
-              <p className="bp-body" dangerouslySetInnerHTML={{ __html: manifestoBody2 }} />
+              <p className="bp-body" dangerouslySetInnerHTML={{ __html: sanitizeInlineHtml(manifestoBody2) }} />
             ) : (
               <p className="bp-body">Every application we deploy uses <strong>modular APIs, local-first data layers, and clean documentation by default</strong>. Whether we are launching an e-commerce platform or a custom internal tool, your infrastructure is delivered <span className="neon-text">natively ready to hand off</span> to autonomous AI workflows the moment you are ready to scale.</p>
             )}
