@@ -391,3 +391,11 @@ Payload `where` clauses in the code use server-controlled typed values (e.g.
 `{ lead: { equals: id } }`), never raw operators from user input.
 
 **Action:** None — no NoSQL engine present.
+
+## 35. Block operating system command injection — N/A (verified)
+
+**Finding:** Grepped for `child_process`, `exec`, `execSync`, `spawn`,
+`execFile` — none present. The app shells out nowhere; external work goes through
+typed SDKs (googleapis, Payload) and `fetch`.
+
+**Action:** None — no command-execution surface.
