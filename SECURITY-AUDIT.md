@@ -1017,3 +1017,28 @@ memory/disk.
 **Action:** Added `upload.limits.fileSize = 5MB` in `payload.config.ts`. Oversized
 uploads are rejected by Payload's parser; Traefik/Cloudflare cap request size
 upstream as a hard backstop.
+
+## 93. Store uploads outside the webroot — APPLIED (prod) / noted
+
+**Finding:** Locally, `media` uploads use `staticDir: public/media` (inside the
+served root). In production the `s3Storage` plugin is enabled (when the Supabase S3
+env is present) and uploads go to a Supabase Storage bucket served from a separate
+CDN origin — outside the app webroot entirely.
+
+**Action:** Production stores/serves uploads from the Supabase bucket (off-webroot,
+separate origin — isolates them from the app). The local-disk path is mitigated by
+the raster-only allowlist (item 91), the size cap (item 92), `nosniff` (item 74),
+and sharp re-encoding, so a stored file can't be executed as code. Noted: keep the
+Supabase bucket enabled in prod.
+
+## 94. Randomize and sanitize stored filenames — APPLIED (verified) / noted
+
+**Finding:** Uploads are named by Payload, which sanitizes filenames (strips path
+separators/special chars) and de-duplicates by appending a suffix, so a
+user-supplied name can't traverse directories or overwrite an existing file — the
+two security goals. Names are not fully randomized.
+
+**Action:** Verified traversal/overwrite are prevented by framework sanitization +
+dedupe. Combined with raster-only types (item 91) and off-webroot serving in prod
+(item 93), the residual risk is cosmetic (predictable names). Noted: add an upload
+hook to assign a random UUID filename if unpredictability is desired.
