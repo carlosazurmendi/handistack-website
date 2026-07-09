@@ -223,3 +223,13 @@ where client JS could read and persist it.
 **Action:** Set `auth.removeTokenFromResponses = true` so the token is delivered
 only via the HttpOnly + Secure cookie. The admin UI uses the cookie, so this
 doesn't affect functionality. No tokens are placed in URLs or logs anywhere.
+
+## 20. Issue short-lived access tokens — APPLIED (via item 14) / framework
+
+**Finding:** Access token lifetime is `tokenExpiration` (set to 2h in item 14).
+Payload pairs it with a `/api/users/refresh-token` endpoint to obtain fresh tokens
+without re-login, over the same HttpOnly-cookie channel.
+
+**Action:** 2h access token + framework refresh flow. Both are transported via the
+Secure HttpOnly cookie, not a bearer token in JS. Shorter windows are possible but
+2h is a sensible balance for this single-admin panel.
