@@ -542,3 +542,13 @@ is fed untrusted input.
 
 **Action:** Each bypass reviewed and classified; the only dynamic one is
 sanitized.
+
+## 50. Sanitize content rendered into emails — APPLIED (verified)
+
+**Finding:** The only app-generated email with user-controlled content is the
+booking-cancellation email (`cancellationEmailHtml`), which already HTML-escapes
+the lead name and formatted time via `escapeHtml`. Booking invites are rendered by
+Google Calendar; password-reset/verify emails use Payload's framework templates.
+
+**Action:** Verified body content is escaped. Email header injection (CRLF in
+subject/to/from) is addressed in item 63.
