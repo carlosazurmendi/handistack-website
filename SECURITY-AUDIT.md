@@ -970,3 +970,16 @@ per-collection REST `maxLimit`.
 already pass small explicit limits (e.g. 20). Residual, documented: a hard REST
 `?limit=` cap needs a `beforeOperation` clamp hook or a newer Payload with
 `maxLimit`; exposure is bounded because these collections are auth-locked.
+
+## 89. Verify signatures on incoming webhooks — APPLIED (verified)
+
+**Finding:** The only inbound webhook is the n8n qualification callback
+(`/book/callback`). It authenticates every request against a shared secret in a
+configurable header, now compared in constant time (item 9) and failing closed if
+the server secret is unset. It also validates the body shape (leadId + status
+enum) and confirms the lead exists before acting.
+
+**Action:** Verified authenticity is enforced on the inbound webhook. It's also
+naturally idempotent (updates the lead by id to a fixed verdict), so a replay just
+re-writes the same state. Noted enhancement: add a timestamp/nonce if n8n begins
+sending one, for explicit replay protection.
