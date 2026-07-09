@@ -414,3 +414,11 @@ operators, or sort direction.
 **Finding:** No LDAP/directory integration exists.
 
 **Action:** None.
+
+## 38. Escape identifiers in dynamic queries — N/A (verified)
+
+**Finding:** No query takes structural parts (table/column/sort/operator) from
+user input. Sorts are hardcoded string literals (`sort: 'order'`), and filters use
+fixed field names. Nothing user-controlled is concatenated as an identifier.
+
+**Action:** None.
