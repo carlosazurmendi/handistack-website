@@ -552,3 +552,15 @@ Google Calendar; password-reset/verify emails use Payload's framework templates.
 
 **Action:** Verified body content is escaped. Email header injection (CRLF in
 subject/to/from) is addressed in item 63.
+
+## 51. Add CSRF protection to mutations — APPLIED (verified) + item 53
+
+**Finding:** Cookie-authenticated mutations (the Payload admin API) are CSRF-
+protected by Payload: it validates the request Origin against the configured
+`csrf` allowlist and pairs with the SameSite cookie (item 54). The custom `/book/*`
+mutations are NOT cookie/session-authenticated (they use `overrideAccess` and gate
+on lead status / a shared secret), so classic session-riding CSRF grants no
+privilege there.
+
+**Action:** Verified `csrf: [serverURL, https://ADMIN_HOST]` is set. Origin
+verification is additionally added to the public booking POSTs in item 53.
