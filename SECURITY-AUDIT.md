@@ -530,3 +530,15 @@ user-controlled input. Rendering is React JSX (data is escaped, not compiled as 
 template), and emails are built from fixed string templates with escaped values.
 
 **Action:** None — no template-evaluation surface.
+
+## 49. Audit unsafe HTML render bypasses — APPLIED (verified)
+
+**Finding:** Enumerated every `dangerouslySetInnerHTML`/`innerHTML` in the tree
+(4 total): (1) JSON-LD `<script>` — static data, `<`-escaped in item 43;
+(2) `LegalPage` `<style>` — a static in-file CSS constant, no user input;
+(3) `ui.tsx` `innerHTML = ''` — empty reset; (4) `Site.tsx` `manifestoBody2` —
+CMS-authored, now sanitized (item 44). No framework "trust raw HTML" escape hatch
+is fed untrusted input.
+
+**Action:** Each bypass reviewed and classified; the only dynamic one is
+sanitized.
