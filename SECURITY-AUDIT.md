@@ -511,3 +511,14 @@ sole `postMessage` consumer is Payload's `useLivePreview` (framework, same-origi
 origin-checked). No reads of `location.hash`/`search` into markup.
 
 **Action:** None — no source-to-sink flow exists.
+
+## 47. Prevent stored XSS in content — APPLIED (verified)
+
+**Finding:** Stored content served to visitors (case studies, testimonials, posts,
+marketing copy, lead-derived text) is rendered through React's escaped `{...}`
+interpolation everywhere except `manifestoBody2`, which is now sanitized (item 44).
+Less-obvious surfaces (case-study `tag`/`metric`, testimonial author, thank-you
+message) all go through escaped interpolation.
+
+**Action:** The one stored-HTML path is sanitized; everything else is
+auto-escaped. No stored payload can execute in another user's browser.
