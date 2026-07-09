@@ -49,7 +49,12 @@ const nextConfig = {
     return [
       {
         source: '/admin/:path*',
-        headers: [{ key: 'Cache-Control', value: 'no-store, no-transform' }],
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-transform' },
+          // Prevent the admin panel from being framed by other sites (clickjacking).
+          // frame-ancestors for the public site is set via CSP in the headers below.
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+        ],
       },
       {
         source: '/api/:path*',

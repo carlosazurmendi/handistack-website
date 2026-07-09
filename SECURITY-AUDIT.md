@@ -605,3 +605,14 @@ middleware only performs a host-based internal rewrite, never a user-controlled
 redirect. Payload's own admin redirects are framework-validated.
 
 **Action:** None — no open-redirect surface.
+
+## 56. Prevent clickjacking with frame controls — APPLIED
+
+**Finding:** No framing controls existed on the admin. (The public site's
+`frame-ancestors` was added with the CSP in item 45, deliberately allowing only
+the admin Live-Preview iframe.)
+
+**Action:** Added `X-Frame-Options: SAMEORIGIN` to `/admin/:path*` in
+`next.config.mjs` so the admin panel can't be framed by third-party sites. The
+marketing pages are protected by `frame-ancestors 'self' https://<ADMIN_HOST>`
+(item 45), which both blocks clickjacking and preserves Live Preview.
