@@ -422,3 +422,15 @@ user input. Sorts are hardcoded string literals (`sort: 'order'`), and filters u
 fixed field names. Nothing user-controlled is concatenated as an identifier.
 
 **Action:** None.
+
+## 39. Validate and bound user regex — APPLIED
+
+**Finding:** The email regex `^[^\s@]+@[^\s@]+\.[^\s@]+$` (and the other regexes:
+`^https?:\/\/`, `/_/g`) are all linear-time with no nested/overlapping quantifiers,
+so no catastrophic backtracking exists. But the public lead route ran regex on
+unbounded input from JSON.
+
+**Action:** Added explicit per-field length caps in `/book/lead` that run BEFORE
+the email regex/validation (name ≤200, email ≤320, phone ≤50, domain ≤255,
+bottleneck ≤5000, timeline ≤100), returning 422 when exceeded. No ReDoS-prone
+pattern remains, and inputs are now bounded before evaluation.

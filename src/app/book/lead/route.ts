@@ -27,6 +27,20 @@ export async function POST(req: Request) {
   const timeline = body.timeline ? String(body.timeline).trim() : undefined
   const consent = body.consent === true
 
+  // Bound every field length BEFORE running any regex or further validation, so
+  // oversized input can't be used for resource-exhaustion / regex abuse. (The
+  // email regex is linear-time, but this is defense-in-depth.)
+  if (
+    name.length > 200 ||
+    email.length > 320 ||
+    (phone !== undefined && phone.length > 50) ||
+    domain.length > 255 ||
+    bottleneck.length > 5000 ||
+    (timeline !== undefined && timeline.length > 100)
+  ) {
+    return NextResponse.json({ error: 'One or more fields are too long' }, { status: 422 })
+  }
+
   // Honeypot: this field is hidden from real users, so any value means a bot.
   // Respond with a generic 400 rather than revealing why.
   if (String(body.company_website || '').trim() !== '') {
