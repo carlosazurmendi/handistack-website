@@ -19,6 +19,12 @@ export const Users: CollectionConfig = {
     forgotPassword: {
       expiration: 30 * 60 * 1000,
     },
+    // Payload always sets HttpOnly on the auth cookie (JS can't read it). Add the
+    // Secure flag in production so it's never sent over plain HTTP; left off in dev
+    // so login still works over http://localhost. (SameSite is set in item 54.)
+    cookies: {
+      secure: process.env.NODE_ENV === 'production',
+    },
   },
   hooks: {
     // Enforce the password strength policy server-side whenever a password is set

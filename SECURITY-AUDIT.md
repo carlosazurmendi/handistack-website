@@ -152,3 +152,13 @@ email-triggering endpoints: 3 requests / 5 min per IP (vs 10/min for auth),
 returning 429 + Retry-After and a neutral message that doesn't reveal whether the
 address is registered. Payload doesn't expose the recipient at this layer, so
 keying is per-IP; per-address keying would require a forgot-password hook.
+
+## 13. Set secure session cookie flags — APPLIED
+
+**Finding:** Payload's auth cookie is HttpOnly by default, but Secure/SameSite
+weren't explicitly configured.
+
+**Action:** Added `auth.cookies.secure = (NODE_ENV === 'production')` to the
+`users` collection — Secure in prod (HTTPS only), off in local dev so
+http://localhost login still works. HttpOnly is always on (framework). Domain is
+left host-only (most restrictive). SameSite is set in item 54.
