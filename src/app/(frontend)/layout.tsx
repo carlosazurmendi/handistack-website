@@ -42,7 +42,12 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
   return (
     <html lang="en">
       <head>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script
+          type="application/ld+json"
+          // Escape `<` so the serialized JSON can never terminate the <script>
+          // element early (defense-in-depth — the data is static today).
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
         {/* Lucide must exist before hydration so icons render immediately. */}
         <Script src="https://unpkg.com/lucide@latest" strategy="beforeInteractive" />
       </head>

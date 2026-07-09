@@ -458,3 +458,16 @@ CSV export enabled and there is no custom export code.
 
 **Action:** None — no spreadsheet export surface. (If a lead CSV export is added
 later, prefix cells starting with `= + - @` before writing.)
+
+## 43. Encode output to stop XSS — APPLIED (verified + hardened)
+
+**Finding:** React auto-escapes all `{...}` interpolation, which covers the vast
+majority of dynamic output. A full audit found exactly four raw-HTML sinks (see
+item 49): a static JSON-LD `<script>`, a static `<style>` string, an
+`innerHTML = ''` reset (empty), and the CMS `manifestoBody2` field. Only the last
+carries dynamic content.
+
+**Action:** Escaped `<` in the JSON-LD serialization so it can't break out of the
+`<script>` tag even if the data later becomes dynamic. The `manifestoBody2` HTML
+sink is sanitized in item 44. All other output relies on React's context-aware
+escaping.
