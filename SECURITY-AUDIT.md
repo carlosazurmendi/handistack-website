@@ -794,3 +794,26 @@ server-side only.
 `Server` header is normalized by the Traefik/Cloudflare layer in front of the app.
 Security headers (CSP, X-Frame-Options, HSTS, nosniff, Referrer-Policy,
 Permissions-Policy) are added in items 45/56/74/76.
+
+## 73. Disable directory listing and indexes — N/A (verified)
+
+**Finding:** The app runs as Next.js standalone (Node server), which does not
+generate directory listings — a folder request without an index resolves to a 404,
+not a browsable index. Static assets are served only from `/public`. Uploaded
+media is served through Payload, not an autoindexed directory. `.git`, config, and
+env files are outside the served roots / gitignored.
+
+**Action:** None — no autoindex behavior exists.
+
+## 74. Harden insecure default framework settings — APPLIED
+
+**Finding:** `reactStrictMode` is on and debug/dev behavior is `NODE_ENV`-gated, but
+several baseline hardening response headers were absent.
+
+**Action:** Added global headers in `next.config.mjs` on `/:path*`:
+`X-Content-Type-Options: nosniff` (no MIME sniffing), `Referrer-Policy:
+strict-origin-when-cross-origin`, `Permissions-Policy` disabling
+camera/microphone/geolocation/browsing-topics, and `X-DNS-Prefetch-Control: off`.
+Combined with items 45/56/72/76, the app now sends a full security-header set.
+Payload admin defaults (auth required, no sample routes, no verbose prod logging)
+were reviewed and are already safe.

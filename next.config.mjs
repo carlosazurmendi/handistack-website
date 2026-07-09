@@ -50,6 +50,16 @@ const nextConfig = {
     // that rewrites/optimizes HTML can drop a streamed chunk and blank the admin.
     // `no-transform` tells the proxy to pass these responses through untouched.
     return [
+      // Baseline security headers on every response (harden framework defaults).
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()' },
+          { key: 'X-DNS-Prefetch-Control', value: 'off' },
+        ],
+      },
       {
         source: '/admin/:path*',
         headers: [
