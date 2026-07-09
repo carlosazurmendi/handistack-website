@@ -256,3 +256,17 @@ deleting sessions on the user document.
 
 **Action:** None — a server-checked session store providing immediate revocation
 already exists. This is exactly the mechanism the prompt asks to build.
+
+## 23. Enforce authorization on the server — APPLIED (verified)
+
+**Finding:** All data access is mediated server-side by Payload access-control
+functions, not the UI. Writes on every collection require a logged-in user
+(Payload's default access is `Boolean(user)` for any unspecified operation);
+`leads` and `bookings` are fully locked to authenticated users; public reads are
+deliberately narrowed to published content (`case-studies`, `posts`,
+`testimonials` gate on `published`) or intentionally-public marketing copy. The
+custom `/book/*` routes run server-side and enforce their own gates (e.g.
+`/book/confirm` re-checks the lead is `qualified` before booking).
+
+**Action:** None needed for the general model — it is server-enforced. The one
+object-level gap (`/book/lead/[id]`) is fixed in item 24.
