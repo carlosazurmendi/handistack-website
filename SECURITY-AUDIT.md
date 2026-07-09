@@ -182,3 +182,13 @@ just cleared from the browser. Payload also supports logging out all devices
 
 **Action:** None — framework already destroys the session server-side on logout
 and offers all-device logout. A captured token is unusable after logout.
+
+## 16. Validate every JWT claim properly — N/A (verified)
+
+**Finding:** No application code decodes or verifies JWTs — Payload issues and
+verifies its own auth JWT on every request (signature via `PAYLOAD_SECRET`, plus
+expiration and session binding). There is no endpoint that trusts an unverified
+token.
+
+**Action:** None — verification is entirely framework-owned and enforced per
+request.
