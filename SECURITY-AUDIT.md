@@ -1109,3 +1109,15 @@ line per event with a timestamp) and emit events from the booking flow:
 `booking.lead_created` — each with the source IP but **no secrets or full PII**.
 Payload logs its own admin auth events (login/failure) via its logger. These lines
 can be grepped/shipped to spot brute-force, scraping, or abuse patterns.
+
+## 100. Prevent log injection and forgery — APPLIED
+
+**Finding:** User-controlled values (IP headers, Origin, etc.) flowing into logs
+could contain CR/LF to forge fake log lines or break the log pipeline.
+
+**Action:** `logSecurityEvent` (item 99) scrubs every string value through
+`stripControlChars` (replaces any control char < 0x20 and DEL with a space) and
+caps length at 256, then emits a single JSON line per event — so each field is a
+distinct, structured value that can't inject newlines or forge entries. Existing
+error logs only write `Error.message`/status codes (not raw user input). Combined
+with item 63 (email header CRLF), no untrusted newline reaches a log or header.
