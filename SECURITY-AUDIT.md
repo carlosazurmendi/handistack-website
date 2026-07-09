@@ -298,3 +298,15 @@ them to `users`: both roles reach the panel, but create/delete are admin-only an
 read/update are admin-or-self. Content collections keep editor+admin write access
 (their default `Boolean(user)`), which is the intended editor role. The role-field
 escalation lock is item 28.
+
+## 26. Apply a default-deny access policy — APPLIED (verified)
+
+**Finding:** Payload's default access for any operation without an explicit rule is
+`Boolean(user)` (deny for anonymous). Reviewed every collection/global: all writes
+are default-denied to the public; public reads are opt-in and narrow
+(`case-studies`/`posts`/`testimonials` gate on `published`; `media`/`categories`/
+`marketing` are intentionally public content). No collection is accidentally open
+for writes, and there is no unauthenticated write path.
+
+**Action:** None beyond item 25's explicit `users` rules — the baseline posture is
+already deny-by-default. New collections inherit the same default.
