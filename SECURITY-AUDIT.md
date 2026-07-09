@@ -81,3 +81,12 @@ never signals whether an email was seen before. No enumeration surface found.
 shrink the leaked-link window. Payload 3 uses server-side sessions, so a
 completed reset re-issues session state. Token generation/verification remain
 framework-managed (not hand-rolled), which is the desired posture.
+
+## 7. Regenerate sessions to block fixation — N/A (verified)
+
+**Finding:** Sessions are owned by Payload 3 with `useSessions` enabled. A brand-
+new session record + JWT are minted server-side at successful login; Payload never
+reads a session identifier supplied by the client, so a pre-planted session cannot
+be ridden into an authenticated one. No anonymous pre-login session is reused.
+
+**Action:** None — framework already regenerates session state at login.
