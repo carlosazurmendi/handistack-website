@@ -90,3 +90,18 @@ reads a session identifier supplied by the client, so a pre-planted session cann
 be ridden into an authenticated one. No anonymous pre-login session is reused.
 
 **Action:** None — framework already regenerates session state at login.
+
+## 8. Add multi-factor authentication support — SKIPPED (needs supervised rollout)
+
+**Finding:** No MFA today. Adding TOTP to Payload's admin login means a custom
+auth strategy that intercepts the login operation, plus secret storage, QR
+provisioning, and hashed recovery codes.
+
+**Action:** Intentionally NOT applied in this unattended pass. A partial MFA that
+stores a secret but doesn't enforce it at login adds no security, and the enforce-
+at-login piece is exactly the part that, if wrong, locks the admin out of their
+own panel. Per the "never ship a fix that can't be applied safely" rule this is
+left for a supervised change. Recommended path: a per-user `totpSecret` (hashed)
++ hashed recovery codes + a custom Payload auth strategy that verifies the code
+after password, rolled out opt-in with a tested fallback. Rate-limit the verify
+step (reuse `src/lib/rateLimit.ts`).
