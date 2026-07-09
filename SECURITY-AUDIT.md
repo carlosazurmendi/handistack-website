@@ -817,3 +817,13 @@ camera/microphone/geolocation/browsing-topics, and `X-DNS-Prefetch-Control: off`
 Combined with items 45/56/72/76, the app now sends a full security-header set.
 Payload admin defaults (auth required, no sample routes, no verbose prod logging)
 were reviewed and are already safe.
+
+## 75. Force HTTPS across the application — APPLIED (verified)
+
+**Finding:** HTTP→HTTPS redirection is enforced at the Cloudflare/Traefik edge, and
+the app uses `https://` in `APP_URL`/`serverURL`. Session cookies are `Secure` in
+production (item 13) so they never travel over plain HTTP. No endpoint is
+HTTP-only.
+
+**Action:** Verified end-to-end HTTPS. HSTS (item 76) instructs browsers to refuse
+HTTP for the domain entirely, closing the pre-redirect gap.
