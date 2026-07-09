@@ -958,3 +958,15 @@ record.
 
 **Action:** Verified no endpoint over-shares. The public status endpoint already
 returns a hand-picked minimal shape rather than the whole document.
+
+## 88. Enforce maximum pagination page sizes — APPLIED (partial) / noted
+
+**Finding:** Payload's REST list endpoints honor a client `?limit=`. This version
+exposes `admin.pagination` (which bounds the admin UI list) but no hard
+per-collection REST `maxLimit`.
+
+**Action:** Set `admin.pagination.defaultLimit = 25` (`limits: [10,25,50,100]`) on
+`leads` and `bookings` to bound the admin list view. Server-side public reads
+already pass small explicit limits (e.g. 20). Residual, documented: a hard REST
+`?limit=` cap needs a `beforeOperation` clamp hook or a newer Payload with
+`maxLimit`; exposure is bounded because these collections are auth-locked.
