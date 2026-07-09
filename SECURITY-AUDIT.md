@@ -485,3 +485,19 @@ sanitizer (escape everything, then re-allow only exact-match `<strong> <b> <em>
 attribute, event handler, or `javascript:` URL stays inert as escaped text.
 Applied it to the `manifestoBody2` render. No dependency added; documented
 DOMPurify as the upgrade for richer/less-trusted HTML.
+
+## 45. Add a Content Security Policy — APPLIED
+
+**Finding:** No CSP was set. An injected script would run unconstrained.
+
+**Action:** Added a CSP in `next.config.mjs` on the marketing HTML routes (`/`,
+`/privacy`, `/terms`) — enumerated, not a catch-all, so the Payload admin's markup
+is never constrained: `default-src 'self'`, `object-src 'none'`, `base-uri
+'self'`, `form-action 'self'`, scoped `img-src`/`style-src`/`font-src`/
+`connect-src`, and `frame-ancestors 'self' https://<ADMIN_HOST>` (allows only the
+admin Live-Preview iframe to frame the site). `script-src` keeps `'unsafe-inline'`
++ `unpkg.com` (lucide) for Next hydration; dev-only relaxations (`'unsafe-eval'`,
+`ws:`) are gated to `NODE_ENV !== production`. **Verified via preview**: homepage
+renders, lucide loads, zero CSP violations in console; admin correctly receives no
+CSP. Follow-up: self-host lucide + move to nonce-based script-src to drop
+`'unsafe-inline'`.

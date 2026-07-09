@@ -4,6 +4,29 @@ import path from 'path'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
+const isDev = process.env.NODE_ENV !== 'production'
+// The admin panel lives on its own subdomain and frames the marketing homepage in
+// Live Preview, so the frontend must permit framing by that origin.
+const ADMIN_HOST = process.env.ADMIN_HOST || 'adminportal.handistack.com'
+
+// Content Security Policy for the public marketing pages. Scoped to the frontend
+// HTML routes (not /admin, whose framework markup needs looser rules). In dev we
+// relax script-src for HMR (eval) and connect-src for the websocket.
+const frontendCsp = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  // Allow the admin subdomain (Live Preview iframe) to frame the site; nobody else.
+  `frame-ancestors 'self' https://${ADMIN_HOST}`,
+  "img-src 'self' data: blob: https://*.supabase.co https://*.storage.supabase.co",
+  `script-src 'self' 'unsafe-inline' https://unpkg.com${isDev ? " 'unsafe-eval'" : ''}`,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  `connect-src 'self' https://*.supabase.co${isDev ? ' ws: wss:' : ''}`,
+  "form-action 'self'",
+]
+  .join('; ')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Standalone output so the Docker image stays small (pulled via Dockhand on the GCP VPS).
@@ -32,6 +55,12 @@ const nextConfig = {
         source: '/api/:path*',
         headers: [{ key: 'Cache-Control', value: 'no-store, no-transform' }],
       },
+      // CSP on the public marketing HTML routes. Enumerated (not a catch-all) so
+      // the Payload admin's own markup requirements are never constrained.
+      ...['/', '/privacy', '/terms'].map((source) => ({
+        source,
+        headers: [{ key: 'Content-Security-Policy', value: frontendCsp }],
+      })),
     ]
   },
 }
