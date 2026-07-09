@@ -635,3 +635,15 @@ Payload validates every collection field server-side on create/update.
 
 **Action:** Verified no endpoint trusts client-only validation. Additional
 type/format checks are strengthened in item 59.
+
+## 59. Validate types, lengths, and formats — APPLIED
+
+**Finding:** `/book/confirm` accepted `startISO`/`endISO` as any string and passed
+them to the Calendar API without format/range checks; `label` was unbounded.
+
+**Action:** Added strict validation in `/book/confirm`: both datetimes must parse
+as real instants, be correctly ordered, be within a sane duration (≤4h), and not
+be in the past (60s skew allowed); `label` is capped at 120 chars. Combined with
+the per-field length caps in item 39 and the enum check on the callback status,
+inputs are now type/format/range validated on the server. (Payload schema-validates
+all collection fields.)

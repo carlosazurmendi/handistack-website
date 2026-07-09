@@ -24,9 +24,24 @@ export async function POST(req: Request) {
   const leadId = body.leadId != null ? String(body.leadId) : ''
   const startISO = String(body.startISO || '')
   const endISO = String(body.endISO || '')
-  const label = body.label ? String(body.label) : ''
+  const label = body.label ? String(body.label).slice(0, 120) : ''
   if (!leadId || !startISO || !endISO) {
     return NextResponse.json({ error: 'leadId, startISO, endISO required' }, { status: 422 })
+  }
+
+  // Validate the datetimes are real ISO instants, correctly ordered, not in the
+  // past, and a sane duration — before they reach the Google Calendar API.
+  const start = new Date(startISO)
+  const end = new Date(endISO)
+  const durMs = end.getTime() - start.getTime()
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    durMs <= 0 ||
+    durMs > 4 * 60 * 60 * 1000 || // > 4h is not a real teardown slot
+    start.getTime() < Date.now() - 60_000 // not in the past (1min skew)
+  ) {
+    return NextResponse.json({ error: 'Invalid or out-of-range time slot' }, { status: 422 })
   }
 
   const payload = await getPayloadClient()
