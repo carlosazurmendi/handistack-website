@@ -595,3 +595,13 @@ Payload CSRF/SameSite protections.
 is not sent on cross-site requests (a strong default CSRF defense) while normal
 top-level navigation to the admin still works. Combined with Secure (item 13) and
 HttpOnly (framework), the session cookie now carries all three protections.
+
+## 55. Block open redirect vulnerabilities — N/A (verified)
+
+**Finding:** No endpoint redirects to a URL taken from user input. There is no
+`next`/`returnTo`/`callbackUrl` post-login redirect in app code (the only
+`callbackUrl` is the server-built n8n callback, not a browser redirect), and the
+middleware only performs a host-based internal rewrite, never a user-controlled
+redirect. Payload's own admin redirects are framework-validated.
+
+**Action:** None — no open-redirect surface.
