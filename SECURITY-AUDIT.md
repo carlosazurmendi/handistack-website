@@ -574,3 +574,15 @@ handlers set no `Access-Control-Allow-Origin`, so browsers enforce same-origin o
 their responses by default.
 
 **Action:** None — CORS is already a minimal explicit allowlist.
+
+## 53. Verify Origin and Referer headers — APPLIED
+
+**Finding:** The public booking mutations (`/book/lead`, `/book/confirm`) accepted
+POSTs from any origin.
+
+**Action:** Added `src/lib/originCheck.ts` (`sameOriginOk`) and gate both booking
+POSTs on it: an Origin matching our app/admin host (or localhost in dev) is
+allowed, a missing Origin is allowed (non-browser/native — can't be a cross-site
+attack), and a cross-site browser Origin is rejected with 403. The n8n callback is
+intentionally exempt (server-to-server, secret-authenticated). Complements the
+Payload CSRF/SameSite protections.

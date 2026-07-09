@@ -4,6 +4,7 @@ import { forwardLeadToN8n } from '@/lib/n8n'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { clientIp } from '@/lib/rateLimit'
 import { signPollToken } from '@/lib/pollToken'
+import { sameOriginOk } from '@/lib/originCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,12 @@ const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // Step 1 of the booking flow: capture triage info, persist the lead, and kick off
 // the n8n qualification research. Returns the leadId the client polls.
 export async function POST(req: Request) {
+  // Reject cross-site browser origins (defense-in-depth against another site
+  // scripting this endpoint from a visitor's browser).
+  if (!sameOriginOk(req)) {
+    return NextResponse.json({ error: 'Cross-origin request rejected' }, { status: 403 })
+  }
+
   let body: Record<string, unknown>
   try {
     body = await req.json()

@@ -3,12 +3,17 @@ import { getPayloadClient } from '@/lib/payload'
 import { createBooking } from '@/lib/booking'
 import { isSlotFree } from '@/lib/availability'
 import { CALENDAR_TZ } from '@/lib/google'
+import { sameOriginOk } from '@/lib/originCheck'
 
 export const dynamic = 'force-dynamic'
 
 // Final step: a qualified lead picks a slot. We re-verify the lead is qualified
 // and the slot is still free, create the Calendar event + Meet, and record it.
 export async function POST(req: Request) {
+  if (!sameOriginOk(req)) {
+    return NextResponse.json({ error: 'Cross-origin request rejected' }, { status: 403 })
+  }
+
   let body: Record<string, unknown>
   try {
     body = await req.json()
