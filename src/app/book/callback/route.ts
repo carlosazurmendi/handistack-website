@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
+import { safeEqual } from '@/lib/safeCompare'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +14,9 @@ const CALLBACK_HEADER = process.env.N8N_CALLBACK_HEADER || 'x-callback-secret'
 
 export async function POST(req: Request) {
   const secret = req.headers.get(CALLBACK_HEADER)
-  if (!secret || secret !== process.env.N8N_CALLBACK_SECRET) {
+  // Constant-time compare so an attacker can't recover the secret byte-by-byte
+  // via response timing. Also fail closed if the server secret is unset.
+  if (!process.env.N8N_CALLBACK_SECRET || !safeEqual(secret, process.env.N8N_CALLBACK_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

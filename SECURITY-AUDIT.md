@@ -105,3 +105,15 @@ left for a supervised change. Recommended path: a per-user `totpSecret` (hashed)
 + hashed recovery codes + a custom Payload auth strategy that verifies the code
 after password, rolled out opt-in with a tested fallback. Rate-limit the verify
 step (reuse `src/lib/rateLimit.ts`).
+
+## 9. Compare credentials in constant time — APPLIED
+
+**Finding:** `/book/callback` authenticated the n8n verdict with
+`secret !== process.env.N8N_CALLBACK_SECRET` — a short-circuiting compare that
+leaks the secret through timing. (Payload's own password/token comparisons are
+already constant-time.)
+
+**Action:** Added `src/lib/safeCompare.ts` (`safeEqual` — SHA-256 both sides then
+`crypto.timingSafeEqual`, so timing is independent of value and length) and used
+it in the callback route. Also fails closed when the server secret is unset.
+This is the only hand-rolled secret comparison in the codebase.
