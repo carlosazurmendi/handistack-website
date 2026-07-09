@@ -913,3 +913,16 @@ explicit no-store header.
 entry in `next.config.mjs` (code landed with item 76). **Verified via preview**:
 `/book/availability` returns `no-store`. Public marketing pages remain normally
 cacheable; authenticated/sensitive responses are not stored by browsers or proxies.
+
+## 84. Add global API rate limiting — APPLIED
+
+**Finding:** The custom `/book/*` routes (excluded from the middleware limiter) had
+no rate limiting, so lead creation, booking, polling, availability, and the n8n
+callback could all be hammered.
+
+**Action:** Applied per-IP limits (via `src/lib/rateLimit.ts`, `cf-connecting-ip`
+aware) with 429 + Retry-After on every booking endpoint: `/book/lead` 5 / 10min
+(expensive: DB + n8n), `/book/confirm` 10 / 10min, `/book/lead/[id]` 120/min
+(polled), `/book/availability` 60/min, `/book/callback` 60/min. Payload's own API
+is throttled at the auth endpoints via middleware (items 3/12). Single-container
+in-memory store; swap for Redis when horizontally scaled.

@@ -6,6 +6,7 @@ import { clientIp } from '@/lib/rateLimit'
 import { signPollToken } from '@/lib/pollToken'
 import { sameOriginOk } from '@/lib/originCheck'
 import { tooLarge, wantsJson } from '@/lib/httpGuards'
+import { rateLimit } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +25,14 @@ export async function POST(req: Request) {
   }
   if (!wantsJson(req)) {
     return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 })
+  }
+  // Lead creation is expensive (DB write + n8n research). Cap per IP.
+  const rl = rateLimit(`book:lead:${clientIp(req.headers)}`, { max: 5, windowMs: 10 * 60_000 })
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please wait a moment and try again.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
   }
 
   let body: Record<string, unknown>

@@ -5,6 +5,7 @@ import { isSlotFree } from '@/lib/availability'
 import { CALENDAR_TZ } from '@/lib/google'
 import { sameOriginOk } from '@/lib/originCheck'
 import { tooLarge, wantsJson } from '@/lib/httpGuards'
+import { rateLimit, clientIp } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,13 @@ export async function POST(req: Request) {
   }
   if (!wantsJson(req)) {
     return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 })
+  }
+  const rl = rateLimit(`book:confirm:${clientIp(req.headers)}`, { max: 10, windowMs: 10 * 60_000 })
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please wait a moment and try again.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
   }
 
   let body: Record<string, unknown>

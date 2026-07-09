@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
 import { safeEqual } from '@/lib/safeCompare'
 import { tooLarge } from '@/lib/httpGuards'
+import { rateLimit, clientIp } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,13 @@ export const dynamic = 'force-dynamic'
 const CALLBACK_HEADER = process.env.N8N_CALLBACK_HEADER || 'x-callback-secret'
 
 export async function POST(req: Request) {
+  const rl = rateLimit(`book:callback:${clientIp(req.headers)}`, { max: 60, windowMs: 60_000 })
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
   const secret = req.headers.get(CALLBACK_HEADER)
   // Constant-time compare so an attacker can't recover the secret byte-by-byte
   // via response timing. Also fail closed if the server secret is unset.

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
 import { verifyPollToken } from '@/lib/pollToken'
+import { rateLimit, clientIp } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,14 @@ export const dynamic = 'force-dynamic'
 // non-existent lead) to avoid leaking which ids exist.
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  // Polled every ~3s by the client; cap generously per IP to blunt abuse.
+  const rl = rateLimit(`book:poll:${clientIp(req.headers)}`, { max: 120, windowMs: 60_000 })
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
   const token = new URL(req.url).searchParams.get('token')
   if (!verifyPollToken(id, token)) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
