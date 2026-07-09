@@ -1082,3 +1082,17 @@ transitive deps. Direct deps in `package.json` are pinned to exact versions
 **Action:** Verified the lockfile is tracked and authoritative; regenerated it to
 include the undici override (item 96). Recommend CI use `pnpm install
 --frozen-lockfile` to reject drift.
+
+## 98. Add Subresource Integrity to scripts — APPLIED (self-hosted)
+
+**Finding:** The only external resource was lucide loaded from
+`https://unpkg.com/lucide@latest` — no `integrity` hash AND a mutable `@latest`
+tag, so a compromised/updated CDN file would execute unchecked (an SRI hash is
+also impossible against a moving `@latest`).
+
+**Action:** Self-hosted lucide (pinned v1.23.0) at `public/vendor/lucide.min.js`
+and pointed the loader at `/vendor/lucide.min.js`. This removes the third-party
+supply-chain dependency entirely (strictly better than SRI) and let me drop
+`https://unpkg.com` from the CSP `script-src`. **Verified via preview**: 55 icons
+render, `window.lucide` present, no CSP violations. No remaining externally-loaded
+scripts/styles require SRI; fonts load from Google with the CSP restricting origins.

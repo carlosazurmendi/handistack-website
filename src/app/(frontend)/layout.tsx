@@ -48,8 +48,11 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
           // element early (defense-in-depth — the data is static today).
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
-        {/* Lucide must exist before hydration so icons render immediately. */}
-        <Script src="https://unpkg.com/lucide@latest" strategy="beforeInteractive" />
+        {/* Lucide must exist before hydration so icons render immediately.
+            Self-hosted (public/vendor/lucide.min.js, pinned v1.23.0) instead of a
+            mutable CDN URL — removes the third-party supply-chain risk and lets the
+            CSP drop the external script origin. Update the file to upgrade. */}
+        <Script src="/vendor/lucide.min.js" strategy="beforeInteractive" />
       </head>
       <body>
         <div id="root">{children}</div>

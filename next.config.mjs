@@ -19,7 +19,7 @@ const frontendCsp = [
   // Allow the admin subdomain (Live Preview iframe) to frame the site; nobody else.
   `frame-ancestors 'self' https://${ADMIN_HOST}`,
   "img-src 'self' data: blob: https://*.supabase.co https://*.storage.supabase.co",
-  `script-src 'self' 'unsafe-inline' https://unpkg.com${isDev ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   `connect-src 'self' https://*.supabase.co${isDev ? ' ws: wss:' : ''}`,
