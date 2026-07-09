@@ -859,3 +859,12 @@ both modern. No MD5/SHA1/DES, no ECB mode, no hardcoded IVs, no homegrown crypto
 Password hashing (PBKDF2) and JWT signing are Payload's, both current.
 
 **Action:** None — no weak primitive present.
+
+## 79. Use a cryptographically secure random generator — APPLIED (verified)
+
+**Finding:** All security-sensitive random values use `crypto`: the seed admin
+password uses `randomBytes` (item 66); the poll capability token uses HMAC keyed by
+`PAYLOAD_SECRET`; Payload mints session/reset tokens with its own CSPRNG. No
+`Math.random()` is used for any security value (verified by grep).
+
+**Action:** None — no predictable RNG in a security context.
