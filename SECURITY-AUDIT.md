@@ -564,3 +564,13 @@ privilege there.
 
 **Action:** Verified `csrf: [serverURL, https://ADMIN_HOST]` is set. Origin
 verification is additionally added to the public booking POSTs in item 53.
+
+## 52. Configure CORS without dangerous wildcards — APPLIED (verified)
+
+**Finding:** Payload CORS is an explicit allowlist `[serverURL,
+https://ADMIN_HOST]` — no `*` wildcard and no credentialed wildcard. Incoming
+Origin is matched against the list, not reflected. The custom `/book/*` route
+handlers set no `Access-Control-Allow-Origin`, so browsers enforce same-origin on
+their responses by default.
+
+**Action:** None — CORS is already a minimal explicit allowlist.
