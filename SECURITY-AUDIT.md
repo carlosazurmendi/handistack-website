@@ -868,3 +868,48 @@ password uses `randomBytes` (item 66); the poll capability token uses HMAC keyed
 `Math.random()` is used for any security value (verified by grep).
 
 **Action:** None — no predictable RNG in a security context.
+
+## 80. Hash security tokens before storage — APPLIED (verified) / noted
+
+**Finding:** The app stores no bearer tokens/API keys of its own. The poll token
+(item 24) is stateless (HMAC, never stored). n8n secrets live in env, not the DB.
+The only stored auth tokens are Payload's session and password-reset tokens, which
+Payload manages internally; session validity is checked server-side per request
+(item 22).
+
+**Action:** No app-managed plaintext token storage to fix. Verified incoming
+secrets are constant-time compared (item 9), not stored-then-echoed. Noted that
+Payload's reset-token storage is framework-managed.
+
+## 81. Mask sensitive values in logs — APPLIED (verified)
+
+**Finding:** Reviewed every `console.error`/`logger` call. They log error messages,
+HTTP status codes, and non-sensitive identifiers (bookingId, eventId) — never
+passwords, tokens, API keys, full request bodies, or the n8n callback secret. The
+n8n forward builds a payload containing `callbackSecret` but never logs it.
+
+**Action:** Verified no secret or full PII/body is written to logs. (If richer
+logging is added later, route sensitive fields through a redactor before logging.)
+
+## 82. Encrypt stored personal identifiable information — APPLIED (platform) / noted
+
+**Finding:** Lead PII (name, email, phone, company domain) is stored in Supabase
+Postgres with at-rest encryption (item 77). Access is restricted to authenticated
+admins/editors via collection access control (items 23–26). The schema stores only
+what the qualification/booking flow needs — no over-collection.
+
+**Action:** Platform at-rest encryption + access control + data minimization.
+Field-level application encryption was weighed and declined for the same
+functional reasons as item 77; documented as an option for any future
+high-sensitivity field. Where a value only needs matching, hashing is preferred.
+
+## 83. Prevent caching of sensitive pages — APPLIED
+
+**Finding:** `/admin/*` and `/api/*` already sent `Cache-Control: no-store`, but the
+`/book/*` endpoints (which return lead-specific status/availability) did not set an
+explicit no-store header.
+
+**Action:** Added a `/book/:path*` → `Cache-Control: no-store, no-transform` header
+entry in `next.config.mjs` (code landed with item 76). **Verified via preview**:
+`/book/availability` returns `no-store`. Public marketing pages remain normally
+cacheable; authenticated/sensitive responses are not stored by browsers or proxies.
