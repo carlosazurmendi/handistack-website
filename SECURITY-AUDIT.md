@@ -827,3 +827,14 @@ HTTP-only.
 
 **Action:** Verified end-to-end HTTPS. HSTS (item 76) instructs browsers to refuse
 HTTP for the domain entirely, closing the pre-redirect gap.
+
+## 76. Enable HSTS to enforce TLS — APPLIED
+
+**Finding:** No `Strict-Transport-Security` header was sent.
+
+**Action:** Added `Strict-Transport-Security: max-age=63072000; includeSubDomains;
+preload` to the global headers in `next.config.mjs`. **Verified via preview** it's
+present on responses. Note: `preload` is a real commitment (the apex + all
+subdomains must stay HTTPS-only); both the apex and the admin subdomain are
+HTTPS-only behind Cloudflare, so this holds — drop `preload` if a plain-HTTP
+subdomain is ever needed. (This commit also carries item 83's `/book/*` no-store.)

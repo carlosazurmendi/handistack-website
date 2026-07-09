@@ -58,6 +58,10 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()' },
           { key: 'X-DNS-Prefetch-Control', value: 'off' },
+          // Force HTTPS for 2 years incl. subdomains. Browsers ignore this over
+          // plain HTTP, so it's safe to always send. `preload` is included — the
+          // apex and admin subdomain are both HTTPS-only behind Cloudflare.
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         ],
       },
       {
@@ -71,6 +75,12 @@ const nextConfig = {
       },
       {
         source: '/api/:path*',
+        headers: [{ key: 'Cache-Control', value: 'no-store, no-transform' }],
+      },
+      {
+        // Booking endpoints return lead-specific data — never cache in browsers or
+        // intermediary proxies.
+        source: '/book/:path*',
         headers: [{ key: 'Cache-Control', value: 'no-store, no-transform' }],
       },
       // CSP on the public marketing HTML routes. Enumerated (not a catch-all) so
