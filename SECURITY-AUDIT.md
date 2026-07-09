@@ -117,3 +117,12 @@ already constant-time.)
 `crypto.timingSafeEqual`, so timing is independent of value and length) and used
 it in the callback route. Also fails closed when the server secret is unset.
 This is the only hand-rolled secret comparison in the codebase.
+
+## 10. Harden the remember-me feature — N/A (verified)
+
+**Finding:** No "remember me" / persistent-login feature exists. Admin auth uses
+Payload's session cookie with a fixed expiration; there is no long-lived
+persistent token to harden. No public app login at all beyond the Payload admin.
+
+**Action:** None — the vulnerable feature isn't present. (Cookie flags and session
+lifetime are handled in items 13/14.)
