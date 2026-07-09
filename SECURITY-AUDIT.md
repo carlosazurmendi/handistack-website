@@ -201,3 +201,15 @@ no asymmetric/symmetric key that could be confused. No `alg: none` acceptance.
 
 **Action:** None — the signing algorithm is fixed by the framework, not chosen by
 the token.
+
+## 18. Strengthen and rotate signing secrets — APPLIED (guard) / noted (rotation)
+
+**Finding:** `PAYLOAD_SECRET` was read from env (good — not hardcoded) but with a
+silent `|| ''` fallback, so a misconfigured prod deploy could run with an empty
+signing secret.
+
+**Action:** Added a production runtime guard in `payload.config.ts` that throws if
+`PAYLOAD_SECRET` is missing or < 32 chars (skipped during `next build` so
+secret-less CI still builds). Payload supports a single active secret; true
+zero-downtime rotation would need a multi-key verifier, noted as a follow-up. All
+other signing secrets (n8n) are already env-sourced.

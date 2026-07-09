@@ -24,6 +24,18 @@ const dirname = path.dirname(filename)
 const serverURL =
   process.env.APP_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
+// The signing secret protects every session/JWT and any signed data. It must be
+// long, random, and loaded from config (never hardcoded). Fail fast at runtime in
+// production if it's missing or too weak — but not during `next build`, which runs
+// without real env and only needs the config to load.
+const PAYLOAD_SECRET = process.env.PAYLOAD_SECRET || ''
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build'
+if (process.env.NODE_ENV === 'production' && !isBuildPhase && PAYLOAD_SECRET.length < 32) {
+  throw new Error(
+    'PAYLOAD_SECRET must be set to a strong value (at least 32 characters) in production.',
+  )
+}
+
 // Supabase Storage (S3-compatible) for media — enabled only when S3 keys are
 // present; otherwise media stays on the local disk / mounted volume.
 const supabaseS3Enabled = Boolean(
@@ -109,7 +121,7 @@ export default buildConfig({
   editor: lexicalEditor(),
   collections: [Users, Media, Leads, Bookings, Categories, Posts, CaseStudies, Testimonials],
   globals: [Marketing],
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: PAYLOAD_SECRET,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
