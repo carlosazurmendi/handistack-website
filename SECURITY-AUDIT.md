@@ -60,3 +60,14 @@ Single-container in-memory store; swap for Redis if scaled out.
 `users` collection. Payload tracks failures per-account (immune to IP rotation),
 normalizes the email (immune to case tricks), resets on success, and does not
 disclose the remaining attempt count.
+
+## 5. Stop username and email enumeration — N/A (verified)
+
+**Finding:** No public account signup and no "email exists" endpoint. Payload's
+login returns a single generic "email or password is incorrect" regardless of
+which was wrong, and forgot-password returns a generic success whether or not the
+address exists. The custom `/book/lead` POST always creates a fresh lead and
+never signals whether an email was seen before. No enumeration surface found.
+
+**Action:** None — existing responses are already constant and non-revealing.
+(Object-level ID enumeration on `/book/lead/[id]` is addressed under item 24.)
