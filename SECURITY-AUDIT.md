@@ -162,3 +162,23 @@ weren't explicitly configured.
 `users` collection — Secure in prod (HTTPS only), off in local dev so
 http://localhost login still works. HttpOnly is always on (framework). Domain is
 left host-only (most restrictive). SameSite is set in item 54.
+
+## 14. Add idle and absolute session timeouts — APPLIED (idle) / noted (absolute)
+
+**Finding:** `tokenExpiration` was implicit (2h default). No explicit policy.
+
+**Action:** Set `auth.tokenExpiration = 2h` on `users` as the idle timeout —
+Payload enforces expiry server-side on each request and extends it on activity, so
+an idle admin session dies after 2h. A separate hard absolute-max isn't natively
+configurable in Payload; documented as the residual gap (2h idle is an acceptable
+bound for this single-admin, low-traffic panel).
+
+## 15. Fully invalidate sessions on logout — N/A (verified)
+
+**Finding:** Payload 3 uses server-side sessions. Logout (`/api/users/logout`)
+removes the session record server-side, so the token is dead immediately — not
+just cleared from the browser. Payload also supports logging out all devices
+(`?allSessions=true`), which clears the whole sessions array for the account.
+
+**Action:** None — framework already destroys the session server-side on logout
+and offers all-device logout. A captured token is unusable after logout.

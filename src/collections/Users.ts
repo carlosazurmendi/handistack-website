@@ -25,6 +25,12 @@ export const Users: CollectionConfig = {
     cookies: {
       secure: process.env.NODE_ENV === 'production',
     },
+    // Idle timeout: the session token is valid for 2h and is extended on activity
+    // via refresh, so an unused admin session expires server-side after 2h. Payload
+    // enforces this expiry on every request (it does not trust a client clock). A
+    // hard absolute-max lifetime isn't natively configurable in Payload; 2h idle is
+    // the practical bound for this low-volume admin.
+    tokenExpiration: 2 * 60 * 60,
   },
   hooks: {
     // Enforce the password strength policy server-side whenever a password is set
