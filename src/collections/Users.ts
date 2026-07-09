@@ -25,6 +25,10 @@ export const Users: CollectionConfig = {
     // so login still works over http://localhost. (SameSite is set in item 54.)
     cookies: {
       secure: process.env.NODE_ENV === 'production',
+      // Don't send the auth cookie on cross-site requests — blocks CSRF by default.
+      // 'Lax' (not 'Strict') so a normal top-level navigation to the admin still
+      // carries the session; admin API calls are same-site anyway.
+      sameSite: 'Lax',
     },
     // Idle timeout: the session token is valid for 2h and is extended on activity
     // via refresh, so an unused admin session expires server-side after 2h. Payload

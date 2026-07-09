@@ -586,3 +586,12 @@ allowed, a missing Origin is allowed (non-browser/native — can't be a cross-si
 attack), and a cross-site browser Origin is rejected with 403. The n8n callback is
 intentionally exempt (server-to-server, secret-authenticated). Complements the
 Payload CSRF/SameSite protections.
+
+## 54. Set the SameSite cookie attribute — APPLIED
+
+**Finding:** Payload's auth cookie didn't explicitly set SameSite.
+
+**Action:** Set `auth.cookies.sameSite = 'Lax'` on `users`, so the session cookie
+is not sent on cross-site requests (a strong default CSRF defense) while normal
+top-level navigation to the admin still works. Combined with Secure (item 13) and
+HttpOnly (framework), the session cookie now carries all three protections.
