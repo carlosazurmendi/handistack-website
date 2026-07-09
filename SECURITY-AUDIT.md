@@ -625,3 +625,13 @@ key) — no authorization-code flow, no redirect URIs, no `state`/PKCE surface.
 Admin login is Payload's own email/password.
 
 **Action:** None — no OAuth redirect handling exists.
+
+## 58. Validate input on the server — APPLIED (verified)
+
+**Finding:** All input validation is server-side. The custom `/book/*` routes
+validate on the server (type coercion, required fields, email format, consent,
+length bounds from item 39); the browser-side checks in `Booking.tsx` are UX only.
+Payload validates every collection field server-side on create/update.
+
+**Action:** Verified no endpoint trusts client-only validation. Additional
+type/format checks are strengthened in item 59.
