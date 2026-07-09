@@ -39,3 +39,15 @@ common/breached list, blocks single-repeat-char, requires ≥3 of 4 character
 classes) and wired it into a `beforeValidate` hook on the `users` collection
 (`src/collections/Users.ts`). It runs server-side for create, admin change, and
 reset, returning a friendly `APIError` message. Client cannot bypass it.
+
+## 3. Rate limit login attempts — APPLIED
+
+**Finding:** Payload 3 dropped the express-era global `rateLimit` config, so
+there was no per-IP throttle on `/api/users/login` or the other auth endpoints.
+
+**Action:** Added `src/lib/rateLimit.ts` (dependency-free fixed-window limiter,
+Edge- and Node-safe, with a `cf-connecting-ip`-aware client-IP resolver) and
+applied it in `src/middleware.ts` to POSTs against login, forgot-password,
+reset-password, refresh-token, and first-register: 10 attempts/min per IP,
+returning `429` + `Retry-After`. Complements the per-account lockout in item 4.
+Single-container in-memory store; swap for Redis if scaled out.
