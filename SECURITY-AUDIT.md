@@ -434,3 +434,27 @@ unbounded input from JSON.
 the email regex/validation (name ≤200, email ≤320, phone ≤50, domain ≤255,
 bottleneck ≤5000, timeline ≤100), returning 422 when exceeded. No ReDoS-prone
 pattern remains, and inputs are now bounded before evaluation.
+
+## 40. Prevent prototype pollution in objects — N/A (verified)
+
+**Finding:** No deep-merge/clone of untrusted data and no user-controlled property
+keys. `JSON.parse` is used on request bodies (which doesn't assign `__proto__`),
+and object writes use fixed keys (`patch[key]` in the seed iterates a static
+constant, not user input). No lodash.merge / Object.assign of untrusted objects.
+
+**Action:** None — no prototype-pollution sink.
+
+## 41. Disable XML external entity parsing — N/A
+
+**Finding:** The app parses no XML (no XML parser, no SOAP/SVG-upload/XML import).
+Request bodies are JSON only.
+
+**Action:** None.
+
+## 42. Prevent formula injection in exports — N/A
+
+**Finding:** There is no CSV/spreadsheet export feature. Payload's admin has no
+CSV export enabled and there is no custom export code.
+
+**Action:** None — no spreadsheet export surface. (If a lead CSV export is added
+later, prefix cells starting with `= + - @` before writing.)
