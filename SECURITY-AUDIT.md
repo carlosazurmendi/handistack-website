@@ -997,3 +997,23 @@ an existing booking for the lead and, if found, returns that booking's details
 `isSlotFree` check and the confirm rate limit (item 84), a repeated request now has
 the same effect as a single one. (A per-request idempotency key would further guard
 distinct slots, noted as an enhancement.)
+
+## 91. Validate upload types by content — APPLIED
+
+**Finding:** The `media` collection allowed `mimeTypes: ['image/*']`, which permits
+`image/svg+xml`. SVG is XML and can embed `<script>`/`onload`, so an uploaded SVG
+served same-origin is a stored-XSS vector.
+
+**Action:** Replaced the wildcard with an explicit raster allowlist —
+`image/png, image/jpeg, image/webp, image/gif, image/avif` (no SVG). All allowed
+types are re-encoded by `sharp` during processing, which also validates that the
+bytes are a real image, not just a spoofed extension/MIME.
+
+## 92. Enforce a maximum upload size — APPLIED
+
+**Finding:** No upload size limit was configured, so a large file could exhaust
+memory/disk.
+
+**Action:** Added `upload.limits.fileSize = 5MB` in `payload.config.ts`. Oversized
+uploads are rejected by Payload's parser; Traefik/Cloudflare cap request size
+upstream as a hard backstop.

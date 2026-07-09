@@ -150,6 +150,11 @@ export default buildConfig({
     migrationDir: path.resolve(dirname, 'migrations'),
   }),
   sharp,
+  // Cap uploaded file size (5MB) so an oversized upload can't exhaust memory/disk.
+  // The reverse proxy caps request size upstream as a hard backstop as well.
+  upload: {
+    limits: { fileSize: 5 * 1024 * 1024 },
+  },
   cors: [serverURL, `https://${process.env.ADMIN_HOST || ''}`].filter(Boolean),
   csrf: [serverURL, `https://${process.env.ADMIN_HOST || ''}`].filter(Boolean),
 })
