@@ -383,3 +383,11 @@ which parameterizes internally. The only raw SQL is in the two migration files
 user input. No string-concatenated queries exist.
 
 **Action:** None — no SQL injection surface.
+
+## 34. Prevent NoSQL query injection — N/A
+
+**Finding:** The datastore is Supabase Postgres (SQL), not a NoSQL database.
+Payload `where` clauses in the code use server-controlled typed values (e.g.
+`{ lead: { equals: id } }`), never raw operators from user input.
+
+**Action:** None — no NoSQL engine present.
