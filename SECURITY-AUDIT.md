@@ -838,3 +838,15 @@ present on responses. Note: `preload` is a real commitment (the apex + all
 subdomains must stay HTTPS-only); both the apex and the admin subdomain are
 HTTPS-only behind Cloudflare, so this holds — drop `preload` if a plain-HTTP
 subdomain is ever needed. (This commit also carries item 83's `/book/*` no-store.)
+
+## 77. Encrypt sensitive data at rest — APPLIED (platform) / noted
+
+**Finding:** Data lives in Supabase Postgres, which encrypts all data at rest
+(AES-256) at the storage layer. The most sensitive stored data is lead PII (name,
+email, phone) and booking details — business-contact data, not secrets/health/SSN.
+
+**Action:** Relying on Supabase's at-rest encryption (verified as the platform
+default). App-level per-field encryption was deliberately NOT added: it would break
+admin display, search, and the n8n qualification flow for a modest gain on
+business-contact data. Documented as an option if a higher-sensitivity field is
+introduced. Encryption keys (Supabase-managed) are separate from the app.
