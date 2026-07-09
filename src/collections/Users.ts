@@ -13,6 +13,12 @@ export const Users: CollectionConfig = {
   auth: {
     maxLoginAttempts: 5,
     lockTime: 15 * 60 * 1000,
+    // Reset tokens are crypto-random and single-use (Payload clears them after a
+    // successful reset). Shorten the validity window from the 1h default to 30min
+    // to reduce the exposure of a leaked reset link.
+    forgotPassword: {
+      expiration: 30 * 60 * 1000,
+    },
   },
   hooks: {
     // Enforce the password strength policy server-side whenever a password is set

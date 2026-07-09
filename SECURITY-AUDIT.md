@@ -71,3 +71,13 @@ never signals whether an email was seen before. No enumeration surface found.
 
 **Action:** None — existing responses are already constant and non-revealing.
 (Object-level ID enumeration on `/book/lead/[id]` is addressed under item 24.)
+
+## 6. Secure the password reset flow — APPLIED (framework + tightened)
+
+**Finding:** Reset is owned by Payload: cryptographically-random token, single-use
+(cleared on success), expiry enforced server-side. Default window was 1 hour.
+
+**Action:** Set `auth.forgotPassword.expiration` to 30 minutes on `users` to
+shrink the leaked-link window. Payload 3 uses server-side sessions, so a
+completed reset re-issues session state. Token generation/verification remain
+framework-managed (not hand-rolled), which is the desired posture.
