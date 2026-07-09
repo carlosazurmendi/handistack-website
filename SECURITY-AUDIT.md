@@ -374,3 +374,12 @@ take effect on the next request, and revoking a session (item 22) blocks access
 immediately. `tokenExpiration` bounds how long any stale token can live.
 
 **Action:** None — access is evaluated fresh per request by the framework.
+
+## 33. Use parameterized database queries — N/A (verified)
+
+**Finding:** All application DB access goes through Payload's ORM (Local/REST API),
+which parameterizes internally. The only raw SQL is in the two migration files
+(`db.execute(sql`...`)`) and is static DDL (CREATE TABLE / ADD COLUMN) with no
+user input. No string-concatenated queries exist.
+
+**Action:** None — no SQL injection surface.
