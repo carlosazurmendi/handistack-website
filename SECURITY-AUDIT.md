@@ -1056,3 +1056,29 @@ media is served from the Supabase Storage CDN — a separate origin from the app
 (not force-downloaded) since displaying them is the feature; the type/nosniff
 controls make that safe. Any future non-image upload type should be served with
 `Content-Disposition: attachment`.
+
+## 96. Audit dependencies for known vulnerabilities — APPLIED
+
+**Finding:** `pnpm audit --prod` reported 26 vulns (3 high, 17 moderate, 6 low),
+all transitive through framework deps. The 3 **high** were all `undici` (via
+`payload`): TLS cert-validation bypass, WebSocket DoS, SOCKS5 cross-origin routing
+— patched in `>=7.28.0`.
+
+**Action:** Added a pnpm override `undici: ^7.28.0` (kept in-major to match what
+Payload expects — an initial `>=7.28.0` pulled undici 8.x, reverted) and
+regenerated the lockfile (`--lockfile-only`, no build). Re-audit: **0 high, 15
+moderate, 4 low**. Remaining are transitive and framework-owned: `dompurify`
+(via Payload's lexical editor), `esbuild`/`postcss` (dev/build tooling) — overriding
+those risks breaking the admin editor, so they're left for an upstream
+`payload`/`next` bump. Documented for the operator to run `pnpm audit` after each
+framework upgrade.
+
+## 97. Lock dependency versions with a lockfile — APPLIED (verified)
+
+**Finding:** `pnpm-lock.yaml` is committed and pins exact versions of all direct and
+transitive deps. Direct deps in `package.json` are pinned to exact versions
+(no `^`/`~`). CI installs from the lockfile so builds are reproducible.
+
+**Action:** Verified the lockfile is tracked and authoritative; regenerated it to
+include the undici override (item 96). Recommend CI use `pnpm install
+--frozen-lockfile` to reject drift.
