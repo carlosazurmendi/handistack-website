@@ -850,3 +850,12 @@ default). App-level per-field encryption was deliberately NOT added: it would br
 admin display, search, and the n8n qualification flow for a modest gain on
 business-contact data. Documented as an option if a higher-sensitivity field is
 introduced. Encryption keys (Supabase-managed) are separate from the app.
+
+## 78. Replace weak cryptographic algorithms — N/A (verified)
+
+**Finding:** No weak crypto in app code. The only hashing/crypto the app performs
+is `safeCompare` (SHA-256 + `timingSafeEqual`) and `pollToken` (HMAC-SHA-256) —
+both modern. No MD5/SHA1/DES, no ECB mode, no hardcoded IVs, no homegrown crypto.
+Password hashing (PBKDF2) and JWT signing are Payload's, both current.
+
+**Action:** None — no weak primitive present.
