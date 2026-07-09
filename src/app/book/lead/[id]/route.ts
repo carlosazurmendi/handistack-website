@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
+import { verifyPollToken } from '@/lib/pollToken'
 
 export const dynamic = 'force-dynamic'
 
 // Polled by the client while n8n researches. Returns the current verdict; once
-// "unqualified", also returns the editable thank-you message.
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+// "unqualified", also returns the editable thank-you message. Requires the
+// capability token issued at lead creation so lead ids can't be enumerated by
+// outsiders; an invalid/missing token returns 404 (indistinguishable from a
+// non-existent lead) to avoid leaking which ids exist.
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const token = new URL(req.url).searchParams.get('token')
+  if (!verifyPollToken(id, token)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
   const payload = await getPayloadClient()
 
   let lead

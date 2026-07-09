@@ -33,6 +33,7 @@ export function Booking({ content }: { content: any }) {
   const [hp, setHp] = useState('')
 
   const [leadId, setLeadId] = useState<string | null>(null)
+  const [pollToken, setPollToken] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [unqualMsg, setUnqualMsg] = useState<string>(content?.unqualifiedMessage || "Thanks for reaching out! We'll contact you regarding your request soon.")
 
@@ -64,6 +65,7 @@ export function Booking({ content }: { content: any }) {
         return
       }
       setLeadId(String(data.leadId))
+      setPollToken(data.pollToken || null)
       setPhase('researching')
     } catch {
       setSubmitError('Network error. Please try again.')
@@ -81,7 +83,7 @@ export function Booking({ content }: { content: any }) {
     pollRef.current = setInterval(async () => {
       attempts++
       try {
-        const res = await fetch(`/book/lead/${leadId}`, { cache: 'no-store' })
+        const res = await fetch(`/book/lead/${leadId}?token=${encodeURIComponent(pollToken || '')}`, { cache: 'no-store' })
         const data = await res.json()
         if (data.status === 'qualified') {
           clearInterval(pollRef.current!)

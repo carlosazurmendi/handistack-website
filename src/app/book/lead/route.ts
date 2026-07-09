@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/lib/payload'
 import { forwardLeadToN8n } from '@/lib/n8n'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { clientIp } from '@/lib/rateLimit'
+import { signPollToken } from '@/lib/pollToken'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,5 +84,11 @@ export async function POST(req: Request) {
     )
   }
 
-  return NextResponse.json({ leadId: lead.id, status: 'researching' })
+  // Issue a capability token the client must present to poll this lead's status,
+  // so lead ids (sequential integers) can't be enumerated by outsiders.
+  return NextResponse.json({
+    leadId: lead.id,
+    status: 'researching',
+    pollToken: signPollToken(String(lead.id)),
+  })
 }

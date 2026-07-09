@@ -270,3 +270,17 @@ custom `/book/*` routes run server-side and enforce their own gates (e.g.
 
 **Action:** None needed for the general model — it is server-enforced. The one
 object-level gap (`/book/lead/[id]`) is fixed in item 24.
+
+## 24. Fix insecure direct object references — APPLIED
+
+**Finding:** `GET /book/lead/[id]` returned a lead's status for any id with no
+authorization. Lead ids are sequential Postgres integers, so an outsider could
+enumerate them to learn how many leads exist and each one's qualification status.
+
+**Action:** Added `src/lib/pollToken.ts` — a stateless HMAC capability token
+(keyed by `PAYLOAD_SECRET`, no schema change/migration needed). `/book/lead`
+returns a `pollToken` on creation; `/book/lead/[id]` now requires a matching token
+(constant-time verified) and returns 404 for a missing/invalid one, so ids can't
+be probed. `Booking.tsx` captures the token and sends it on every poll. Other
+id-addressed routes (`/book/confirm`) already re-check the lead's status
+server-side.
