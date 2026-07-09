@@ -688,3 +688,13 @@ the app are all static/numeric — no user input — so the risk was email-side.
 **Action:** Added a `headerSafe()` helper that strips CR/LF/other control chars and
 applied it to every header value (from, to, cc, reply-to, subject) in the adapter.
 Message structure can no longer be altered through a header value.
+
+## 64. Enforce strict Content-Type validation — APPLIED
+
+**Finding:** The booking POSTs called `req.json()` without verifying the request
+declared JSON, so a form-style `text/plain`/`urlencoded` body could be parsed.
+
+**Action:** Added `httpGuards#wantsJson` and required `application/json` on
+`/book/lead` and `/book/confirm` (→ 415 otherwise). This also removes the CSRF
+"simple request" loophole for those endpoints. `/book/callback` is left tolerant
+(n8n-controlled and secret-authenticated) but still validates its body shape.

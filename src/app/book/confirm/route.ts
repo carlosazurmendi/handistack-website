@@ -4,7 +4,7 @@ import { createBooking } from '@/lib/booking'
 import { isSlotFree } from '@/lib/availability'
 import { CALENDAR_TZ } from '@/lib/google'
 import { sameOriginOk } from '@/lib/originCheck'
-import { tooLarge } from '@/lib/httpGuards'
+import { tooLarge, wantsJson } from '@/lib/httpGuards'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +16,9 @@ export async function POST(req: Request) {
   }
   if (tooLarge(req, 16 * 1024)) {
     return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+  }
+  if (!wantsJson(req)) {
+    return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 })
   }
 
   let body: Record<string, unknown>
