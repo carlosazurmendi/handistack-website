@@ -677,3 +677,14 @@ calendar description and forwarded to n8n — our server never fetches it (n8n d
 which is outside this app's boundary).
 
 **Action:** None — no user-controlled outbound request target.
+
+## 63. Stop HTTP header and CRLF injection — APPLIED
+
+**Finding:** The Gmail email adapter (`buildRaw`) constructs raw RFC-2822 headers
+(`From`/`To`/`Cc`/`Reply-To`/`Subject`) by string concatenation. A CR/LF in any
+value could inject extra headers or split the message. (HTTP response headers in
+the app are all static/numeric — no user input — so the risk was email-side.)
+
+**Action:** Added a `headerSafe()` helper that strips CR/LF/other control chars and
+applied it to every header value (from, to, cc, reply-to, subject) in the adapter.
+Message structure can no longer be altered through a header value.
