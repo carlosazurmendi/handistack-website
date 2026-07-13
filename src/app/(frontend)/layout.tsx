@@ -20,6 +20,10 @@ export const metadata: Metadata = {
     images: ['/handistack-logo-full.png'],
     type: 'website',
   },
+  // Facebook Business domain verification.
+  other: {
+    'facebook-domain-verification': 'movexzobkjns9wrqfg9hl53zrbo5rx',
+  },
 }
 
 // AEO: structured data identifying Handistack as a Florida professional service.
