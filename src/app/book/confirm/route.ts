@@ -3,12 +3,32 @@ import { getPayloadClient } from '@/lib/payload'
 import { createBooking } from '@/lib/booking'
 import { isSlotFree } from '@/lib/availability'
 import { CALENDAR_TZ } from '@/lib/google'
+import { sameOriginOk } from '@/lib/originCheck'
+import { tooLarge, wantsJson } from '@/lib/httpGuards'
+import { rateLimit, clientIp } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
 // Final step: a qualified lead picks a slot. We re-verify the lead is qualified
 // and the slot is still free, create the Calendar event + Meet, and record it.
 export async function POST(req: Request) {
+  if (!sameOriginOk(req)) {
+    return NextResponse.json({ error: 'Cross-origin request rejected' }, { status: 403 })
+  }
+  if (tooLarge(req, 16 * 1024)) {
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+  }
+  if (!wantsJson(req)) {
+    return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 })
+  }
+  const rl = rateLimit(`book:confirm:${clientIp(req.headers)}`, { max: 10, windowMs: 10 * 60_000 })
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please wait a moment and try again.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
+
   let body: Record<string, unknown>
   try {
     body = await req.json()
@@ -19,9 +39,24 @@ export async function POST(req: Request) {
   const leadId = body.leadId != null ? String(body.leadId) : ''
   const startISO = String(body.startISO || '')
   const endISO = String(body.endISO || '')
-  const label = body.label ? String(body.label) : ''
+  const label = body.label ? String(body.label).slice(0, 120) : ''
   if (!leadId || !startISO || !endISO) {
     return NextResponse.json({ error: 'leadId, startISO, endISO required' }, { status: 422 })
+  }
+
+  // Validate the datetimes are real ISO instants, correctly ordered, not in the
+  // past, and a sane duration — before they reach the Google Calendar API.
+  const start = new Date(startISO)
+  const end = new Date(endISO)
+  const durMs = end.getTime() - start.getTime()
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    durMs <= 0 ||
+    durMs > 4 * 60 * 60 * 1000 || // > 4h is not a real teardown slot
+    start.getTime() < Date.now() - 60_000 // not in the past (1min skew)
+  ) {
+    return NextResponse.json({ error: 'Invalid or out-of-range time slot' }, { status: 422 })
   }
 
   const payload = await getPayloadClient()
@@ -31,6 +66,29 @@ export async function POST(req: Request) {
     lead = await payload.findByID({ collection: 'leads', id: leadId, overrideAccess: true })
   } catch {
     return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
+  }
+
+  // Idempotency: if this lead already has a booking (double-click, retry, or a
+  // duplicated request), return the existing one instead of creating a second
+  // Calendar event. This makes the endpoint safe to call more than once.
+  const existing = await payload.find({
+    collection: 'bookings',
+    where: { lead: { equals: Number(leadId) } },
+    overrideAccess: true,
+    depth: 0,
+    limit: 1,
+    pagination: false,
+  })
+  if (existing.docs.length > 0) {
+    const b = existing.docs[0]
+    return NextResponse.json({
+      ok: true,
+      meetLink: b.meetLink ?? null,
+      htmlLink: null,
+      startISO: b.startTime,
+      label: b.slotLabel ?? label,
+      idempotent: true,
+    })
   }
 
   // Gate: only qualified (or already-booked, idempotent retry) leads can book.

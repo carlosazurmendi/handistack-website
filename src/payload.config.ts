@@ -24,6 +24,18 @@ const dirname = path.dirname(filename)
 const serverURL =
   process.env.APP_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
+// The signing secret protects every session/JWT and any signed data. It must be
+// long, random, and loaded from config (never hardcoded). Fail fast at runtime in
+// production if it's missing or too weak — but not during `next build`, which runs
+// without real env and only needs the config to load.
+const PAYLOAD_SECRET = process.env.PAYLOAD_SECRET || ''
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build'
+if (process.env.NODE_ENV === 'production' && !isBuildPhase && PAYLOAD_SECRET.length < 32) {
+  throw new Error(
+    'PAYLOAD_SECRET must be set to a strong value (at least 32 characters) in production.',
+  )
+}
+
 // Supabase Storage (S3-compatible) for media — enabled only when S3 keys are
 // present; otherwise media stays on the local disk / mounted volume.
 const supabaseS3Enabled = Boolean(
@@ -107,9 +119,18 @@ export default buildConfig({
     },
   },
   editor: lexicalEditor(),
+  // GraphQL is auto-exposed by Payload but unused by the app (it uses the Local
+  // API). Cap query complexity to stop expensive nested queries, and in production
+  // disable schema introspection and the interactive playground so the schema
+  // can't be trivially enumerated. Access control still applies to every field.
+  graphQL: {
+    maxComplexity: 200,
+    disableIntrospectionInProduction: true,
+    disablePlaygroundInProduction: true,
+  },
   collections: [Users, Media, Leads, Bookings, Categories, Posts, CaseStudies, Testimonials],
   globals: [Marketing],
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: PAYLOAD_SECRET,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
@@ -129,6 +150,11 @@ export default buildConfig({
     migrationDir: path.resolve(dirname, 'migrations'),
   }),
   sharp,
+  // Cap uploaded file size (5MB) so an oversized upload can't exhaust memory/disk.
+  // The reverse proxy caps request size upstream as a hard backstop as well.
+  upload: {
+    limits: { fileSize: 5 * 1024 * 1024 },
+  },
   cors: [serverURL, `https://${process.env.ADMIN_HOST || ''}`].filter(Boolean),
   csrf: [serverURL, `https://${process.env.ADMIN_HOST || ''}`].filter(Boolean),
 })

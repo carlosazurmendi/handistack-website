@@ -11,7 +11,11 @@ export const Media: CollectionConfig = {
   },
   upload: {
     staticDir: 'public/media',
-    mimeTypes: ['image/*'],
+    // Explicit raster allowlist — NOT 'image/*'. This deliberately excludes SVG,
+    // which is XML and can carry <script>/onload payloads that would execute as
+    // stored XSS when the file is opened same-origin. All allowed types are
+    // re-encoded by sharp on processing, which also validates the real content.
+    mimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif'],
     imageSizes: [
       { name: 'thumbnail', width: 400 },
       { name: 'card', width: 768 },

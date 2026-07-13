@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
 import { forwardLeadToN8n } from '@/lib/n8n'
+import { verifyTurnstile } from '@/lib/turnstile'
+import { clientIp } from '@/lib/rateLimit'
+import { signPollToken } from '@/lib/pollToken'
+import { sameOriginOk } from '@/lib/originCheck'
+import { tooLarge, wantsJson } from '@/lib/httpGuards'
+import { rateLimit } from '@/lib/rateLimit'
+import { logSecurityEvent } from '@/lib/securityLog'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +16,28 @@ const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // Step 1 of the booking flow: capture triage info, persist the lead, and kick off
 // the n8n qualification research. Returns the leadId the client polls.
 export async function POST(req: Request) {
+  // Reject cross-site browser origins (defense-in-depth against another site
+  // scripting this endpoint from a visitor's browser).
+  if (!sameOriginOk(req)) {
+    logSecurityEvent('booking.origin_rejected', { ip: clientIp(req.headers), origin: req.headers.get('origin') })
+    return NextResponse.json({ error: 'Cross-origin request rejected' }, { status: 403 })
+  }
+  if (tooLarge(req, 32 * 1024)) {
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+  }
+  if (!wantsJson(req)) {
+    return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 })
+  }
+  // Lead creation is expensive (DB write + n8n research). Cap per IP.
+  const rl = rateLimit(`book:lead:${clientIp(req.headers)}`, { max: 5, windowMs: 10 * 60_000 })
+  if (!rl.ok) {
+    logSecurityEvent('booking.rate_limited', { ip: clientIp(req.headers), route: 'lead' })
+    return NextResponse.json(
+      { error: 'Too many requests. Please wait a moment and try again.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
+
   let body: Record<string, unknown>
   try {
     body = await req.json()
@@ -24,11 +53,37 @@ export async function POST(req: Request) {
   const timeline = body.timeline ? String(body.timeline).trim() : undefined
   const consent = body.consent === true
 
+  // Bound every field length BEFORE running any regex or further validation, so
+  // oversized input can't be used for resource-exhaustion / regex abuse. (The
+  // email regex is linear-time, but this is defense-in-depth.)
+  if (
+    name.length > 200 ||
+    email.length > 320 ||
+    (phone !== undefined && phone.length > 50) ||
+    domain.length > 255 ||
+    bottleneck.length > 5000 ||
+    (timeline !== undefined && timeline.length > 100)
+  ) {
+    return NextResponse.json({ error: 'One or more fields are too long' }, { status: 422 })
+  }
+
+  // Honeypot: this field is hidden from real users, so any value means a bot.
+  // Respond with a generic 400 rather than revealing why.
+  if (String(body.company_website || '').trim() !== '') {
+    logSecurityEvent('booking.honeypot_tripped', { ip: clientIp(req.headers) })
+    return NextResponse.json({ error: 'Invalid submission' }, { status: 400 })
+  }
+
   if (name.length < 2 || !emailRe.test(email) || domain.length < 3 || bottleneck.length < 5) {
     return NextResponse.json({ error: 'Missing or invalid fields' }, { status: 422 })
   }
   if (!consent) {
     return NextResponse.json({ error: 'Consent to be contacted is required' }, { status: 422 })
+  }
+
+  // Optional Cloudflare Turnstile challenge (only enforced when configured).
+  if (!(await verifyTurnstile(String(body.turnstileToken || ''), clientIp(req.headers)))) {
+    return NextResponse.json({ error: 'Bot verification failed' }, { status: 403 })
   }
 
   let payload
@@ -70,5 +125,13 @@ export async function POST(req: Request) {
     )
   }
 
-  return NextResponse.json({ leadId: lead.id, status: 'researching' })
+  logSecurityEvent('booking.lead_created', { leadId: String(lead.id), ip: clientIp(req.headers) })
+
+  // Issue a capability token the client must present to poll this lead's status,
+  // so lead ids (sequential integers) can't be enumerated by outsiders.
+  return NextResponse.json({
+    leadId: lead.id,
+    status: 'researching',
+    pollToken: signPollToken(String(lead.id)),
+  })
 }

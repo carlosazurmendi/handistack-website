@@ -50,6 +50,9 @@
     "onlyBuiltDependencies": [
       "sharp",
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "undici": "^7.28.0"
+    }
   }
 }

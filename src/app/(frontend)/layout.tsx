@@ -20,6 +20,10 @@ export const metadata: Metadata = {
     images: ['/handistack-logo-full.png'],
     type: 'website',
   },
+  // Facebook Business domain verification.
+  other: {
+    'facebook-domain-verification': 'movexzobkjns9wrqfg9hl53zrbo5rx',
+  },
 }
 
 // AEO: structured data identifying Handistack as a Florida professional service.
@@ -42,9 +46,17 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
   return (
     <html lang="en">
       <head>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-        {/* Lucide must exist before hydration so icons render immediately. */}
-        <Script src="https://unpkg.com/lucide@latest" strategy="beforeInteractive" />
+        <script
+          type="application/ld+json"
+          // Escape `<` so the serialized JSON can never terminate the <script>
+          // element early (defense-in-depth — the data is static today).
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
+        {/* Lucide must exist before hydration so icons render immediately.
+            Self-hosted (public/vendor/lucide.min.js, pinned v1.23.0) instead of a
+            mutable CDN URL — removes the third-party supply-chain risk and lets the
+            CSP drop the external script origin. Update the file to upgrade. */}
+        <Script src="/vendor/lucide.min.js" strategy="beforeInteractive" />
       </head>
       <body>
         <div id="root">{children}</div>

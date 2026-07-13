@@ -8,18 +8,24 @@ import { gmailClient, IMPERSONATE_SUBJECT } from './google'
 const FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || IMPERSONATE_SUBJECT
 const FROM_NAME = process.env.EMAIL_FROM_NAME || 'Handistack'
 
+// Strip CR/LF (and other control chars) so a value can't inject additional email
+// headers or split the message. Applied to every header field below.
+function headerSafe(v: string): string {
+  return v.replace(/[\r\n\t\f\v\0]+/g, ' ').trim()
+}
+
 function toList(to: SendEmailOptions['to']): string {
   if (!to) return ''
-  if (typeof to === 'string') return to
-  if (Array.isArray(to)) return to.map((t) => (typeof t === 'string' ? t : t.address)).join(', ')
-  return typeof to === 'string' ? to : (to as { address: string }).address
+  if (typeof to === 'string') return headerSafe(to)
+  if (Array.isArray(to)) return to.map((t) => headerSafe(typeof t === 'string' ? t : t.address)).join(', ')
+  return headerSafe(typeof to === 'string' ? to : (to as { address: string }).address)
 }
 
 // Build a minimal RFC 2822 message and base64url-encode it for Gmail's raw send.
 function buildRaw(message: SendEmailOptions): string {
-  const from = message.from || `${FROM_NAME} <${FROM_ADDRESS}>`
+  const from = headerSafe(String(message.from || `${FROM_NAME} <${FROM_ADDRESS}>`))
   const to = toList(message.to)
-  const subject = message.subject || ''
+  const subject = headerSafe(String(message.subject || ''))
   const isHtml = Boolean(message.html)
   const body = String(message.html || message.text || '')
 

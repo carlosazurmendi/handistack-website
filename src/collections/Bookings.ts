@@ -8,6 +8,7 @@ export const Bookings: CollectionConfig = {
     useAsTitle: 'startTime',
     defaultColumns: ['lead', 'startTime', 'status', 'meetLink'],
     group: 'Pipeline',
+    pagination: { defaultLimit: 25, limits: [10, 25, 50, 100] },
   },
   access: {
     read: ({ req: { user } }) => Boolean(user),

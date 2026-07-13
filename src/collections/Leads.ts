@@ -9,6 +9,8 @@ export const Leads: CollectionConfig = {
     useAsTitle: 'email',
     defaultColumns: ['name', 'email', 'domain', 'status', 'createdAt'],
     group: 'Pipeline',
+    // Bound the admin list page size so it doesn't pull the whole table at once.
+    pagination: { defaultLimit: 25, limits: [10, 25, 50, 100] },
   },
   access: {
     // Mutations happen server-side via the Local API with overrideAccess; lock the

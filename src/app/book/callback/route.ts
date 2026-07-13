@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/payload'
+import { safeEqual } from '@/lib/safeCompare'
+import { tooLarge } from '@/lib/httpGuards'
+import { rateLimit, clientIp } from '@/lib/rateLimit'
+import { logSecurityEvent } from '@/lib/securityLog'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,9 +16,22 @@ export const dynamic = 'force-dynamic'
 const CALLBACK_HEADER = process.env.N8N_CALLBACK_HEADER || 'x-callback-secret'
 
 export async function POST(req: Request) {
+  const rl = rateLimit(`book:callback:${clientIp(req.headers)}`, { max: 60, windowMs: 60_000 })
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
   const secret = req.headers.get(CALLBACK_HEADER)
-  if (!secret || secret !== process.env.N8N_CALLBACK_SECRET) {
+  // Constant-time compare so an attacker can't recover the secret byte-by-byte
+  // via response timing. Also fail closed if the server secret is unset.
+  if (!process.env.N8N_CALLBACK_SECRET || !safeEqual(secret, process.env.N8N_CALLBACK_SECRET)) {
+    logSecurityEvent('booking.callback_auth_failed', { ip: clientIp(req.headers) })
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  if (tooLarge(req, 256 * 1024)) {
+    return NextResponse.json({ error: 'Request too large' }, { status: 413 })
   }
 
   let body: Record<string, unknown>
