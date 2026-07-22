@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
       <p>
         This Privacy Policy explains how <strong>Handistack</strong> (&ldquo;Handistack,&rdquo;
         &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) collects, uses, and shares
-        information when you visit <a href="https://handistack.com">handistack.com</a> (the
+        information when you visit <a href="https://trades.handistack.com">trades.handistack.com</a> (the
         &ldquo;Site&rdquo;) or request a consultation. By using the Site, you agree to this Policy.
       </p>
 

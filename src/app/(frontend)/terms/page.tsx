@@ -14,7 +14,7 @@ export default function TermsOfServicePage() {
     <LegalPage eyebrow="Legal" title="Terms of Service" updated={UPDATED}>
       <p>
         These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of{' '}
-        <a href="https://handistack.com">handistack.com</a> and any related services (collectively, the
+        <a href="https://trades.handistack.com">trades.handistack.com</a> and any related services (collectively, the
         &ldquo;Services&rdquo;) provided by <strong>Handistack</strong> (&ldquo;Handistack,&rdquo;
         &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;). By using the Services, you agree to
         these Terms. If you do not agree, do not use the Services.

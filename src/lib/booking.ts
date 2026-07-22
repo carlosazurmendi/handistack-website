@@ -27,7 +27,7 @@ export async function createBooking(input: CreateBookingInput): Promise<BookingR
   const space = await createMeetSpace()
 
   const description = [
-    'AI Qualification Teardown — booked from handistack.com',
+    'AI Qualification Teardown — booked from trades.handistack.com',
     '',
     input.domain ? `Company: https://${input.domain}` : '',
     input.bottleneck ? `Stated bottleneck: ${input.bottleneck}` : '',
@@ -131,7 +131,7 @@ export function cancellationEmailHtml(name: string, when: string): string {
     `<p>Hi ${escapeHtml(name)},</p>`,
     `<p>Your Handistack AI Teardown scheduled for <strong>${escapeHtml(when)}</strong> has been cancelled.</p>`,
     `<p>If this was a mistake or you'd like to rebook, reply to this email or grab a new slot at `,
-    `<a href="https://handistack.com">handistack.com</a>.</p>`,
+    `<a href="https://trades.handistack.com">trades.handistack.com</a>.</p>`,
     '<p>— Handistack</p>',
     '</div>',
   ].join('')

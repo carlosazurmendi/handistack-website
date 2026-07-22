@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { rateLimit, clientIp } from '@/lib/rateLimit'
 
 // Serve the Payload admin on its own subdomain. The reverse proxy points both
-// handistack.com and adminportal.handistack.com at this app; here we rewrite the
+// trades.handistack.com and adminportal.handistack.com at this app; here we rewrite the
 // admin host's root to /admin so the marketing site never shows there.
 const ADMIN_HOST = process.env.ADMIN_HOST || 'adminportal.handistack.com'
 

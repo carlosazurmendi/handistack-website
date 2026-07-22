@@ -44,8 +44,9 @@ pnpm dev                    # http://localhost:3000  (admin at /admin)
 > `pnpm start` warns under `output: standalone`; for a local prod check run
 > `node .next/standalone/server.js` instead. Use `pnpm dev` day-to-day.
 
-Default seeded admin: `cazurmendi@handistack.com` / `ChangeMe!Handistack1` — change
-it on first login (override with `SEED_ADMIN_PASSWORD`).
+Default seeded admin: `cazurmendi@handistack.com`. The seed no longer ships a
+hardcoded password — set `SEED_ADMIN_PASSWORD`, or it generates a strong random one
+and prints it once at creation. Change it on first login.
 
 ---
 
@@ -100,7 +101,7 @@ gets a working Meet link.
   "leadId": "123",
   "name": "...", "email": "...", "phone": "...",
   "domain": "yourcompany.com", "bottleneck": "...", "timeline": "...",
-  "callbackUrl": "https://handistack.com/book/callback",
+  "callbackUrl": "https://trades.handistack.com/book/callback",
   "callbackSecret": "<N8N_CALLBACK_SECRET>"
 }
 ```
@@ -135,7 +136,7 @@ network — no host ports are published; Traefik routes to the container.
   prefer building on the box) and runs it.
 
 **Routing (Traefik):**
-- `handistack.com` → marketing site
+- `trades.handistack.com` → marketing site
 - `adminportal.handistack.com` → same container; middleware rewrites the host to
   `/admin`, so the Payload admin shows there and the marketing site never does.
 
@@ -143,8 +144,8 @@ network — no host ports are published; Traefik routes to the container.
 production values:
 
 ```
-APP_URL=https://handistack.com            # runtime base (NOT build-inlined)
-NEXT_PUBLIC_SERVER_URL=https://handistack.com
+APP_URL=https://trades.handistack.com            # runtime base (NOT build-inlined)
+NEXT_PUBLIC_SERVER_URL=https://trades.handistack.com
 ADMIN_HOST=adminportal.handistack.com
 GOOGLE_SERVICE_ACCOUNT_B64=<base64 of the service-account JSON>   # no file to mount
 PAYLOAD_DB_PUSH=true                       # first deploy; switch to migrations later
@@ -156,7 +157,7 @@ Plus all the Supabase / Google / n8n values from `.env.example`. Generate the B6
 base64 -w0 secrets/google-service-account.json
 ```
 
-n8n must be able to reach `https://handistack.com/book/callback`. Because `APP_URL` is
+n8n must be able to reach `https://trades.handistack.com/book/callback`. Because `APP_URL` is
 read at runtime, the callback URL handed to n8n is correct regardless of how the image
 was built.
 

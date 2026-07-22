@@ -6,7 +6,7 @@ import './styles/colors_and_type.css'
 import './styles/kit.css'
 
 const SITE_URL =
-  process.env.APP_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://handistack.com'
+  process.env.APP_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://trades.handistack.com'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -33,9 +33,9 @@ const jsonLd = {
   name: 'Handistack',
   description:
     'AI consulting and implementation for service-trade businesses. We find operational bottlenecks — intake, scheduling, quoting, follow-up — and build the AI systems that clear them.',
-  url: 'https://handistack.com',
-  logo: 'https://handistack.com/handistack-mark.png',
-  image: 'https://handistack.com/handistack-logo-full.png',
+  url: 'https://trades.handistack.com',
+  logo: 'https://trades.handistack.com/handistack-mark.png',
+  image: 'https://trades.handistack.com/handistack-logo-full.png',
   slogan: 'Your trade business, minus the bottlenecks.',
   areaServed: 'US',
   knowsAbout: ['AI implementation', 'Business process automation', 'Service-trade operations', 'HVAC', 'Plumbing', 'Electrical'],
